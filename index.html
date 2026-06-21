@@ -1,1 +1,66 @@
-<h1>Golden Ratio Tones Coming Soon</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Golden 13-Tone Generator</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <div id="activation-overlay">
+        <div class="overlay-card">
+            <h1>Golden 13-Tone Generator</h1>
+            <p>Click or tap anywhere to initialize the mathematical audio engine.</p>
+            <button id="activate-btn">Start Experience</button>
+        </div>
+    </div>
+
+    <main id="app-container">
+        <header>
+            <h1>Golden 13-Tone Scale Explorer</h1>
+            <p>Mathematical audio synthesis based on the Golden Ratio interval (833.09 cents)</p>
+        </header>
+
+        <section class="keyboard-section">
+            <h2>The Phi Keyboard Array</h2>
+            <div id="keyboard">
+                </div>
+        </section>
+
+        <section class="controls-grid">
+            <div class="control-card">
+                <h3>Scale Controls</h3>
+                <div class="control-group">
+                    <label for="root-freq">Root Frequency (f0): <span id="root-val">440</span> Hz</label>
+                    <input type="range" id="root-freq" min="220" max="880" step="1" value="440">
+                </div>
+            </div>
+
+            <div class="control-card">
+                <h3>Acoustic Warmth & Dynamics</h3>
+                <div class="control-group">
+                    <label for="warmth">Saturation (Tanh Distortion): <span id="warmth-val">40</span>%</label>
+                    <input type="range" id="warmth" min="0" max="100" step="1" value="40">
+                </div>
+                <div class="control-group">
+                    <label for="release">Envelope Release Time: <span id="release-val">2.5</span>s</label>
+                    <input type="range" id="release" min="0.1" max="8.0" step="0.1" value="2.5">
+                </div>
+                <div class="control-group">
+                    <label for="master-volume">Master Volume: <span id="volume-val">70</span>%</label>
+                    <input type="range" id="master-volume" min="0" max="100" step="1" value="70">
+                </div>
+            </div>
+        </section>
+
+        <section class="visualizer-section">
+            <h3>Acoustic Fractal Waveform</h3>
+            <canvas id="oscilloscope"></canvas>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
+
