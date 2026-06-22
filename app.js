@@ -8,12 +8,12 @@ let spatialLfoNode = null;
 
 // Audio Configuration Variables
 let rootFrequency = 440.00;
-let releaseTime = 4.5; // Bumped default value up for dreamier drone decays
-let activeVoices = {}; // Tracks running dual-oscillators by key index
+let releaseTime = 4.5; 
+let activeVoices = {}; 
 
 // Hypnotic Parameter Variables
-let binauralDetuneHz = 1.62; // Golden Ratio approximation for micro-detuning
-let pannerLfoSpeed = 0.3; // Spatial frequency panning LFO rate
+let binauralDetuneHz = 1.62; 
+let pannerLfoSpeed = 0.3; 
 let filterDepthPercent = 65;
 
 // Interaction and Tuning State Variables
@@ -36,28 +36,22 @@ function initAudio() {
     const AudioContextClass = window.AudioContext || window.webkitAudioContext;
     audioCtx = new AudioContextClass();
     
-    // Master Gain Node Setup
     masterGainNode = audioCtx.createGain();
     masterGainNode.gain.setValueAtTime(0.7, audioCtx.currentTime);
 
-    // Analyser Node Setup
     analyserNode = audioCtx.createAnalyser();
     analyserNode.fftSize = 2048;
 
-    // Resonant Low-Pass Filter Node Setup for atmospheric tides
     spaceFilterNode = audioCtx.createBiquadFilter();
     spaceFilterNode.type = 'lowpass';
     updateFilterFrequency();
-    spaceFilterNode.Q.setValueAtTime(4.0, audioCtx.currentTime); // Sweet warm resonance
+    spaceFilterNode.Q.setValueAtTime(4.0, audioCtx.currentTime);
 
-    // Waveshaper Distortion Node Setup
     distortionNode = audioCtx.createWaveShaper();
     updateWaveShaperCurve(40);
 
-    // Dynamic Spatial Panning Module Configuration (LFO Node Modulating a Stereo Panner)
     setupSpatialLFO();
 
-    // Node Routing Map: [Dual Voices] -> Distortion -> Space Filter -> Master Gain -> Analyser -> Output
     distortionNode.connect(spaceFilterNode);
     spaceFilterNode.connect(masterGainNode);
     masterGainNode.connect(analyserNode);
@@ -66,34 +60,27 @@ function initAudio() {
     drawOscilloscope();
 }
 
-// Configures a cyclic slow panner module to swirl drone soundscapes
 function setupSpatialLFO() {
     if (!audioCtx) return;
     
-    // Low Frequency Oscillator for movement
     spatialLfoNode = audioCtx.createOscillator();
     spatialLfoNode.type = 'sine';
     spatialLfoNode.frequency.setValueAtTime(pannerLfoSpeed, audioCtx.currentTime);
     
-    // Custom gain step acts as filter depth mapping
     const lfoGain = audioCtx.createGain();
-    lfoGain.gain.setValueAtTime(400, audioCtx.currentTime); // Swings filter cutoff by 400Hz up and down
+    lfoGain.gain.setValueAtTime(400, audioCtx.currentTime); 
     
-    // Cross link the LFO directly into the lowpass filter frequency line to make it breathe automatically
     spatialLfoNode.connect(lfoGain);
     lfoGain.connect(spaceFilterNode.frequency);
     spatialLfoNode.start();
 }
 
-// Map filter range calculations safely
 function updateFilterFrequency() {
     if (!spaceFilterNode || !audioCtx) return;
-    // Map slider 10%-100% cleanly to warm audio ranges (300Hz to 5000Hz)
     const targetCutoff = 300 + (filterDepthPercent / 100) * 4700;
     spaceFilterNode.frequency.setValueAtTime(targetCutoff, audioCtx.currentTime);
 }
 
-// Generate hyperbolic tangent distortion curve
 function updateWaveShaperCurve(amount) {
     if (!distortionNode) return;
     const k = typeof amount === 'number' ? amount : 40;
@@ -108,7 +95,6 @@ function updateWaveShaperCurve(amount) {
     distortionNode.value = curve;
 }
 
-// Calculate base pitch frequencies
 function calculateGoldenFrequency(step, root) {
     if (currentTuningMode === 'fibonacci') {
         return root * FIBONACCI_MULTIPLIERS[step];
@@ -118,9 +104,9 @@ function calculateGoldenFrequency(step, root) {
     }
 }
 
-// Dynamically populate the DOM and map interactions
 function buildKeyboard() {
     const keyboardContainer = document.getElementById('keyboard');
+    if (!keyboardContainer) return;
     keyboardContainer.innerHTML = ''; 
 
     for (let i = 0; i < 13; i++) {
@@ -165,7 +151,6 @@ function buildKeyboard() {
     }
 }
 
-// Unified Latch Controller
 function toggleVoice(index) {
     if (!audioCtx) initAudio();
     if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
@@ -177,7 +162,6 @@ function toggleVoice(index) {
     }
 }
 
-// Trigger Voice Attack Phase using Dual-Oscillator Stereo Binaural structures
 function voiceOn(index) {
     if (!audioCtx) initAudio();
     if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
@@ -185,29 +169,24 @@ function voiceOn(index) {
 
     const baseFreq = calculateGoldenFrequency(index, rootFrequency);
     
-    // Construct Left Ear Channel
     const oscLeft = audioCtx.createOscillator();
     oscLeft.type = 'sine';
     oscLeft.frequency.setValueAtTime(baseFreq, audioCtx.currentTime);
     
     const pannerLeft = audioCtx.createStereoPanner();
-    pannerLeft.pan.setValueAtTime(-1.0, audioCtx.currentTime); // Hard Left
+    pannerLeft.pan.setValueAtTime(-1.0, audioCtx.currentTime); 
 
-    // Construct Right Ear Channel with micro-detuned binaural beat offset
     const oscRight = audioCtx.createOscillator();
     oscRight.type = 'sine';
     oscRight.frequency.setValueAtTime(baseFreq + binauralDetuneHz, audioCtx.currentTime);
     
     const pannerRight = audioCtx.createStereoPanner();
-    pannerRight.pan.setValueAtTime(1.0, audioCtx.currentTime); // Hard Right
+    pannerRight.pan.setValueAtTime(1.0, audioCtx.currentTime); 
 
-    // Shared Voice Master Gain Envelope
     const voiceGain = audioCtx.createGain();
     voiceGain.gain.setValueAtTime(0, audioCtx.currentTime);
-    // Extra smooth, long fade-in for majestic drone layer blends
     voiceGain.gain.linearRampToValueAtTime(0.18, audioCtx.currentTime + 0.5);
 
-    // Internal Signal Paths: Osc -> Stereo Panners -> Master Voice Gain Node -> Distortion
     oscLeft.connect(pannerLeft);
     pannerLeft.connect(voiceGain);
 
@@ -219,14 +198,12 @@ function voiceOn(index) {
     oscLeft.start();
     oscRight.start();
 
-    // Cache the dual configuration context reference array safely
     activeVoices[index] = { oscLeft, oscRight, voiceGain };
     
     const keyElement = document.querySelector(`.phi-key[data-index="${index}"]`);
     if (keyElement) keyElement.classList.add('active');
 }
 
-// Trigger Voice Release Phase
 function voiceOff(index) {
     const voice = activeVoices[index];
     if (!voice) return;
@@ -243,14 +220,12 @@ function voiceOff(index) {
     delete activeVoices[index];
 }
 
-// Panic Function
 function clearAllTones() {
     Object.keys(activeVoices).forEach(index => {
         voiceOff(index);
     });
 }
 
-// Real-Time Oscilloscope Rendering Loop
 function drawOscilloscope() {
     const canvas = document.getElementById('oscilloscope');
     const canvasCtx = canvas.getContext('2d');
@@ -288,7 +263,7 @@ function drawOscilloscope() {
     render();
 }
 
-// DOM Interface Control Bindings
+// DOM Event Bindings
 document.getElementById('activation-overlay').addEventListener('pointerdown', (e) => {
     e.preventDefault();
     initAudio();
@@ -308,7 +283,6 @@ document.getElementById('root-freq').addEventListener('input', (e) => {
     buildKeyboard(); 
 });
 
-// Tuning Scale Radio Selection Management
 document.querySelectorAll('input[name="tuning-mode"]').forEach(radio => {
     radio.addEventListener('change', (e) => {
         currentTuningMode = e.target.value;
@@ -321,7 +295,6 @@ document.querySelectorAll('input[name="tuning-mode"]').forEach(radio => {
             subtitle.style.color = "#94a3b8";
         }
         
-        // Live shift working frequencies safely for running dual voices
         Object.keys(activeVoices).forEach(index => {
             const targetFreq = calculateGoldenFrequency(index, rootFrequency);
             if (audioCtx) {
@@ -333,7 +306,6 @@ document.querySelectorAll('input[name="tuning-mode"]').forEach(radio => {
     });
 });
 
-// Keyboard Mode Input Controls Tracking
 document.querySelectorAll('input[name="keyboard-mode"]').forEach(radio => {
     radio.addEventListener('change', (e) => {
         currentKeyboardMode = e.target.value;
@@ -348,12 +320,10 @@ document.querySelectorAll('input[name="keyboard-mode"]').forEach(radio => {
     });
 });
 
-// Hypnotic Parameter Slider Binding Adjustments
 document.getElementById('hypnotic-detune').addEventListener('input', (e) => {
     binauralDetuneHz = parseFloat(e.target.value);
     document.getElementById('detune-val').innerText = binauralDetuneHz.toFixed(2);
     
-    // Dynamically adjust active right-ear offsets instantly in live playback
     Object.keys(activeVoices).forEach(index => {
         const baseFreq = calculateGoldenFrequency(index, rootFrequency);
         if (audioCtx) {
@@ -365,7 +335,7 @@ document.getElementById('hypnotic-detune').addEventListener('input', (e) => {
 document.getElementById('space-swirl').addEventListener('input', (e) => {
     const intensity = parseInt(e.target.value);
     document.getElementById('swirl-val').innerText = intensity;
-    pannerLfoSpeed = (intensity / 100) * 2.0; // Scaled map up to 2Hz max speed
+    pannerLfoSpeed = (intensity / 100) * 2.0; 
     if (spatialLfoNode && audioCtx) {
         spatialLfoNode.frequency.setValueAtTime(pannerLfoSpeed, audioCtx.currentTime);
     }
@@ -394,5 +364,10 @@ document.getElementById('master-volume').addEventListener('input', (e) => {
     if (masterGainNode) masterGainNode.gain.setValueAtTime(val, audioCtx.currentTime);
 });
 
-// Primary Initialization
-buildKeyboard();
+// ROBUST FIXED BOOT SEQUENCE:
+// Intercept document parsing lifecycle to ensure CSS engine settles before layout generation fires
+window.addEventListener('DOMContentLoaded', () => {
+    requestAnimationFrame(() => {
+        buildKeyboard();
+    });
+});
