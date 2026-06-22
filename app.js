@@ -14,6 +14,8 @@ const PHI_INTERVAL_CENTS = 833.0923;
 
 // Initialize the Audio Nodes Ecosystem
 function initAudio() {
+    if (audioCtx) return; // Prevent duplicate initialization
+    
     const AudioContextClass = window.AudioContext || window.webkitAudioContext;
     audioCtx = new AudioContextClass();
     
@@ -72,14 +74,12 @@ function buildKeyboard() {
         const currentFreq = calculateGoldenFrequency(i, rootFrequency).toFixed(1);
         key.innerHTML = `<span>K${i}</span><span style="font-size:0.65rem; color:#64748b">${currentFreq}Hz</span>`;
 
-        // Intercept touch and mouse events uniformly for the latch toggle
-        const handleToggle = (e) => {
+        // Using pointerdown cleanly covers both mouse click and iPad touch without duplicating triggers
+        key.addEventListener('pointerdown', (e) => {
             e.preventDefault();
+            e.stopPropagation();
             toggleVoice(i);
-        };
-
-        key.addEventListener('mousedown', handleToggle);
-        key.addEventListener('touchstart', handleToggle);
+        });
         
         // Retain visual active status if the key is already running during an f0 recalculation
         if (activeVoices[i]) {
@@ -92,8 +92,13 @@ function buildKeyboard() {
 
 // Unified Latch Controller
 function toggleVoice(index) {
-    if (!audioCtx) return;
-    if (audioCtx.state === 'suspended') audioCtx.resume();
+    // Safety check for browser audio activation context
+    if (!audioCtx) {
+        initAudio();
+    }
+    if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
 
     if (activeVoices[index]) {
         voiceOff(index);
@@ -102,8 +107,10 @@ function toggleVoice(index) {
     }
 }
 
-// Trigger Voice Attack Phase (Latches indefinitely)
+// Trigger Voice Attack Phase (Latches indefinitely until clicked again)
 function voiceOn(index) {
+    if (!audioCtx) return;
+    
     const freq = calculateGoldenFrequency(index, rootFrequency);
     
     const osc = audioCtx.createOscillator();
@@ -112,7 +119,7 @@ function voiceOn(index) {
 
     const voiceGain = audioCtx.createGain();
     voiceGain.gain.setValueAtTime(0, audioCtx.currentTime);
-    // Smooth linear attack curve optimized for layering polyphonic chords
+    // Smooth attack phase setup
     voiceGain.gain.linearRampToValueAtTime(0.25, audioCtx.currentTime + 0.08);
 
     osc.connect(voiceGain);
@@ -187,16 +194,17 @@ function drawOscilloscope() {
 }
 
 // DOM Interface Control Bindings
-document.getElementById('activation-overlay').addEventListener('click', () => {
+document.getElementById('activation-overlay').addEventListener('pointerdown', (e) => {
+    e.preventDefault();
     initAudio();
     document.getElementById('activation-overlay').style.opacity = '0';
     setTimeout(() => document.getElementById('activation-overlay').style.display = 'none', 500);
 });
 
-// Clear Button Event Handling for Mouse and iPad Touch Layouts
-document.getElementById('clear-btn').addEventListener('click', clearAllTones);
-document.getElementById('clear-btn').addEventListener('touchstart', (e) => {
+// Clear Button Event Handling for unified pointer interactions
+document.getElementById('clear-btn').addEventListener('pointerdown', (e) => {
     e.preventDefault();
+    e.stopPropagation();
     clearAllTones();
 });
 
