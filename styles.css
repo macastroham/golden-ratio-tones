@@ -149,11 +149,21 @@ header p {
     transition: background 0.1s ease, transform 0.05s ease, border-color 0.1s ease;
 }
 
+.freq-label {
+    font-size: 0.65rem;
+    color: #64748b;
+    margin-top: 4px;
+}
+
 /* Visual Active Toggle State */
 .phi-key.active {
     background: linear-gradient(180deg, #fbbf24 0%, #d97706 100%);
     color: #0d0f12;
     border-color: #fbbf24;
+}
+
+.phi-key.active .freq-label {
+    color: #78350f;
 }
 
 /* Controls Grid Layout */
