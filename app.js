@@ -104,27 +104,30 @@ function calculateGoldenFrequency(step, root) {
     }
 }
 
-// Configures and hooks listeners onto static HTML nodes instead of injecting text fragments
-function configureKeyboard() {
+// Strictly updates visual UI text labels without modifying layout structural event states
+function updateKeyboardLabels() {
     const keys = document.querySelectorAll('.phi-key');
-    
     keys.forEach(key => {
         const i = parseInt(key.dataset.index);
-        
-        // Dynamically update only the sub frequency calculation labels
         const currentFreq = calculateGoldenFrequency(i, rootFrequency).toFixed(1);
         const labelSpan = key.querySelector('.freq-label');
         if (labelSpan) {
             labelSpan.innerText = `${currentFreq}Hz`;
         }
-
-        // Strip previous hooks before mounting unified pointers to prevent event leaks
-        key.replaceWith(key.cloneNode(true));
+        
+        // Ensure active visual class remains synchronized
+        if (activeVoices[i]) {
+            key.classList.add('active');
+        } else {
+            key.classList.remove('active');
+        }
     });
+}
 
-    // Re-select the freshly cloned nodes to bind unified parameters safely
-    const activeKeys = document.querySelectorAll('.phi-key');
-    activeKeys.forEach(key => {
+// Binds interaction pointer routines EXACTLY ONCE upon unmuting overlay clearance
+function initializeKeyboardListeners() {
+    const keys = document.querySelectorAll('.phi-key');
+    keys.forEach(key => {
         const i = parseInt(key.dataset.index);
 
         key.addEventListener('pointerdown', (e) => {
@@ -152,10 +155,6 @@ function configureKeyboard() {
                 voiceOff(i);
             }
         });
-        
-        if (activeVoices[i]) {
-            key.classList.add('active');
-        }
     });
 }
 
@@ -275,6 +274,7 @@ function drawOscilloscope() {
 document.getElementById('activation-overlay').addEventListener('pointerdown', (e) => {
     e.preventDefault();
     initAudio();
+    initializeKeyboardListeners(); // Hooks up structural interaction routes completely right here
     document.getElementById('activation-overlay').style.opacity = '0';
     setTimeout(() => document.getElementById('activation-overlay').style.display = 'none', 500);
 });
@@ -288,7 +288,7 @@ document.getElementById('clear-btn').addEventListener('pointerdown', (e) => {
 document.getElementById('root-freq').addEventListener('input', (e) => {
     rootFrequency = parseFloat(e.target.value);
     document.getElementById('root-val').innerText = rootFrequency;
-    configureKeyboard(); 
+    updateKeyboardLabels(); 
 });
 
 document.querySelectorAll('input[name="tuning-mode"]').forEach(radio => {
@@ -310,7 +310,7 @@ document.querySelectorAll('input[name="tuning-mode"]').forEach(radio => {
                 activeVoices[index].oscRight.frequency.setValueAtTime(targetFreq + binauralDetuneHz, audioCtx.currentTime);
             }
         });
-        configureKeyboard(); 
+        updateKeyboardLabels(); 
     });
 });
 
@@ -324,7 +324,7 @@ document.querySelectorAll('input[name="keyboard-mode"]').forEach(radio => {
         } else {
             titleElement.innerText = "The Phi Keyboard Array (Toggle Mode)";
         }
-        configureKeyboard();
+        updateKeyboardLabels();
     });
 });
 
@@ -372,5 +372,5 @@ document.getElementById('master-volume').addEventListener('input', (e) => {
     if (masterGainNode) masterGainNode.gain.setValueAtTime(val, audioCtx.currentTime);
 });
 
-// Run verification pass immediately on page load
-configureKeyboard();
+// Run mathematical layout labels generation on structural load
+updateKeyboardLabels();
