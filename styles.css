@@ -89,13 +89,37 @@ header p {
     transform: scale(0.95);
 }
 
-/* Keyboard Styling */
+/* Keyboard Section Header and Actions */
+.keyboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
 .keyboard-section h2 {
     font-size: 1.2rem;
     color: #94a3b8;
-    margin-bottom: 10px;
 }
 
+#clear-btn {
+    background-color: #ef4444; /* Alert Red */
+    color: #ffffff;
+    border: none;
+    padding: 8px 18px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.1s ease, transform 0.05s ease;
+}
+
+#clear-btn:active {
+    background-color: #dc2626;
+    transform: translateY(1px);
+}
+
+/* Keyboard Layout Styling */
 #keyboard {
     display: flex;
     width: 100%;
@@ -104,7 +128,7 @@ header p {
     border-radius: 8px;
     padding: 10px;
     gap: 6px;
-    touch-action: none; /* Crucial for preventing iOS scroll interference */
+    touch-action: none; /* Crucial for preventing iPadOS scroll interference */
 }
 
 .phi-key {
@@ -121,15 +145,14 @@ header p {
     color: #a0aec0;
     font-size: 0.8rem;
     font-weight: bold;
-    transition: background 0.1s ease, transform 0.05s ease;
+    transition: background 0.1s ease, transform 0.05s ease, border-color 0.1s ease;
 }
 
-/* Highlight active states clearly for both mouse and touch */
-.phi-key.active, .phi-key:active {
+/* Persistent Active Toggle State */
+.phi-key.active {
     background: linear-gradient(180deg, #fbbf24 0%, #d97706 100%);
     color: #0d0f12;
     border-color: #fbbf24;
-    transform: translateY(2px);
 }
 
 /* Controls Grid Layout */
