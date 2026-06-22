@@ -104,18 +104,28 @@ function calculateGoldenFrequency(step, root) {
     }
 }
 
-function buildKeyboard() {
-    const keyboardContainer = document.getElementById('keyboard');
-    if (!keyboardContainer) return;
-    keyboardContainer.innerHTML = ''; 
-
-    for (let i = 0; i < 13; i++) {
-        const key = document.createElement('div');
-        key.classList.add('phi-key');
-        key.dataset.index = i;
+// Configures and hooks listeners onto static HTML nodes instead of injecting text fragments
+function configureKeyboard() {
+    const keys = document.querySelectorAll('.phi-key');
+    
+    keys.forEach(key => {
+        const i = parseInt(key.dataset.index);
         
+        // Dynamically update only the sub frequency calculation labels
         const currentFreq = calculateGoldenFrequency(i, rootFrequency).toFixed(1);
-        key.innerHTML = `<span>K${i}</span><span style="font-size:0.65rem; color:#64748b">${currentFreq}Hz</span>`;
+        const labelSpan = key.querySelector('.freq-label');
+        if (labelSpan) {
+            labelSpan.innerText = `${currentFreq}Hz`;
+        }
+
+        // Strip previous hooks before mounting unified pointers to prevent event leaks
+        key.replaceWith(key.cloneNode(true));
+    });
+
+    // Re-select the freshly cloned nodes to bind unified parameters safely
+    const activeKeys = document.querySelectorAll('.phi-key');
+    activeKeys.forEach(key => {
+        const i = parseInt(key.dataset.index);
 
         key.addEventListener('pointerdown', (e) => {
             e.preventDefault();
@@ -146,9 +156,7 @@ function buildKeyboard() {
         if (activeVoices[i]) {
             key.classList.add('active');
         }
-
-        keyboardContainer.appendChild(key);
-    }
+    });
 }
 
 function toggleVoice(index) {
@@ -280,7 +288,7 @@ document.getElementById('clear-btn').addEventListener('pointerdown', (e) => {
 document.getElementById('root-freq').addEventListener('input', (e) => {
     rootFrequency = parseFloat(e.target.value);
     document.getElementById('root-val').innerText = rootFrequency;
-    buildKeyboard(); 
+    configureKeyboard(); 
 });
 
 document.querySelectorAll('input[name="tuning-mode"]').forEach(radio => {
@@ -302,7 +310,7 @@ document.querySelectorAll('input[name="tuning-mode"]').forEach(radio => {
                 activeVoices[index].oscRight.frequency.setValueAtTime(targetFreq + binauralDetuneHz, audioCtx.currentTime);
             }
         });
-        buildKeyboard(); 
+        configureKeyboard(); 
     });
 });
 
@@ -316,7 +324,7 @@ document.querySelectorAll('input[name="keyboard-mode"]').forEach(radio => {
         } else {
             titleElement.innerText = "The Phi Keyboard Array (Toggle Mode)";
         }
-        buildKeyboard();
+        configureKeyboard();
     });
 });
 
@@ -364,10 +372,5 @@ document.getElementById('master-volume').addEventListener('input', (e) => {
     if (masterGainNode) masterGainNode.gain.setValueAtTime(val, audioCtx.currentTime);
 });
 
-// ROBUST FIXED BOOT SEQUENCE:
-// Intercept document parsing lifecycle to ensure CSS engine settles before layout generation fires
-window.addEventListener('DOMContentLoaded', () => {
-    requestAnimationFrame(() => {
-        buildKeyboard();
-    });
-});
+// Run verification pass immediately on page load
+configureKeyboard();
