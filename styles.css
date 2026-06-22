@@ -37,6 +37,7 @@ header h1 {
 header p {
     color: #94a3b8;
     font-size: 0.95rem;
+    transition: color 0.3s ease;
 }
 
 /* Activation Overlay */
@@ -148,7 +149,7 @@ header p {
     transition: background 0.1s ease, transform 0.05s ease, border-color 0.1s ease;
 }
 
-/* Persistent Active Toggle State */
+/* Visual Active States */
 .phi-key.active {
     background: linear-gradient(180deg, #fbbf24 0%, #d97706 100%);
     color: #0d0f12;
@@ -158,7 +159,7 @@ header p {
 /* Controls Grid Layout */
 .controls-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 20px;
 }
 
