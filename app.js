@@ -8,13 +8,31 @@ let analyserNode = null;
 let rootFrequency = 440.00;
 let releaseTime = 2.5;
 let activeVoices = {}; // Tracks latched oscillators by key index
+let currentTuningMode = 'spiral'; // 'spiral' or 'fibonacci'
 
 // The Golden Scale Constants
 const PHI_INTERVAL_CENTS = 833.0923;
 
+// Fibonacci 13:8 Progression Multipliers (Derived from stacking 13:8 and reducing by octave fractions)
+const FIBONACCI_MULTIPLIERS = [
+    1.0000, // K0: Root (1/1)
+    1.6250, // K1: 13/8 Interval
+    1.3164, // K2: (13/8)^2 / 2
+    1.0696, // K3: (13/8)^3 / 4
+    1.7381, // K4: (13/8)^4 / 4
+    1.4082, // K5: (13/8)^5 / 8
+    1.1441, // K6: (13/8)^6 / 16
+    1.8592, // K7: (13/8)^7 / 16
+    1.5106, // K8: (13/8)^8 / 32
+    1.2274, // K9: (13/8)^9 / 64
+    1.9945, // K10: (13/8)^10 / 64
+    1.6205, // K11: (13/8)^11 / 128
+    1.3167  // K12: (13/8)^12 / 256
+];
+
 // Initialize the Audio Nodes Ecosystem
 function initAudio() {
-    if (audioCtx) return; // Prevent duplicate initialization
+    if (audioCtx) return; 
     
     const AudioContextClass = window.AudioContext || window.webkitAudioContext;
     audioCtx = new AudioContextClass();
@@ -55,10 +73,15 @@ function updateWaveShaperCurve(amount) {
     distortionNode.value = curve;
 }
 
-// Calculate precise frequency for a given step of the 13-tone scale
+// Calculate precise frequency depending on chosen tuning mode architecture
 function calculateGoldenFrequency(step, root) {
-    const totalCents = (step * PHI_INTERVAL_CENTS) % 1200;
-    return root * Math.pow(2, totalCents / 1200);
+    if (currentTuningMode === 'fibonacci') {
+        return root * FIBONACCI_MULTIPLIERS[step];
+    } else {
+        // Default: 833.09 Cents Continuous Spiral
+        const totalCents = (step * PHI_INTERVAL_CENTS) % 1200;
+        return root * Math.pow(2, totalCents / 1200);
+    }
 }
 
 // Dynamically populate the DOM with the 13 mathematical keys
@@ -74,14 +97,14 @@ function buildKeyboard() {
         const currentFreq = calculateGoldenFrequency(i, rootFrequency).toFixed(1);
         key.innerHTML = `<span>K${i}</span><span style="font-size:0.65rem; color:#64748b">${currentFreq}Hz</span>`;
 
-        // Using pointerdown cleanly covers both mouse click and iPad touch without duplicating triggers
+        // Intercept pointer down actions for clean latching
         key.addEventListener('pointerdown', (e) => {
             e.preventDefault();
             e.stopPropagation();
             toggleVoice(i);
         });
         
-        // Retain visual active status if the key is already running during an f0 recalculation
+        // Retain visual active status if the key is already running during a live calculation shift
         if (activeVoices[i]) {
             key.classList.add('active');
         }
@@ -92,7 +115,6 @@ function buildKeyboard() {
 
 // Unified Latch Controller
 function toggleVoice(index) {
-    // Safety check for browser audio activation context
     if (!audioCtx) {
         initAudio();
     }
@@ -107,7 +129,7 @@ function toggleVoice(index) {
     }
 }
 
-// Trigger Voice Attack Phase (Latches indefinitely until clicked again)
+// Trigger Voice Attack Phase
 function voiceOn(index) {
     if (!audioCtx) return;
     
@@ -119,7 +141,6 @@ function voiceOn(index) {
 
     const voiceGain = audioCtx.createGain();
     voiceGain.gain.setValueAtTime(0, audioCtx.currentTime);
-    // Smooth attack phase setup
     voiceGain.gain.linearRampToValueAtTime(0.25, audioCtx.currentTime + 0.08);
 
     osc.connect(voiceGain);
@@ -201,7 +222,6 @@ document.getElementById('activation-overlay').addEventListener('pointerdown', (e
     setTimeout(() => document.getElementById('activation-overlay').style.display = 'none', 500);
 });
 
-// Clear Button Event Handling for unified pointer interactions
 document.getElementById('clear-btn').addEventListener('pointerdown', (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -212,6 +232,23 @@ document.getElementById('root-freq').addEventListener('input', (e) => {
     rootFrequency = parseFloat(e.target.value);
     document.getElementById('root-val').innerText = rootFrequency;
     buildKeyboard(); 
+});
+
+// Event listeners tracking scale tuning changes
+document.querySelectorAll('input[name="tuning-mode"]').forEach(radio => {
+    radio.addEventListener('change', (e) => {
+        currentTuningMode = e.target.value;
+        
+        // Dynamically shift running tones to the alternative mathematical grid if active
+        Object.keys(activeVoices).forEach(index => {
+            const targetFreq = calculateGoldenFrequency(index, rootFrequency);
+            if (audioCtx) {
+                activeVoices[index].osc.frequency.setValueAtTime(targetFreq, audioCtx.currentTime);
+            }
+        });
+        
+        buildKeyboard(); // Refresh key interface text frequencies
+    });
 });
 
 document.getElementById('warmth').addEventListener('input', (e) => {
