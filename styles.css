@@ -3,7 +3,7 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    -webkit-user-select: none; /* Prevents text selection highlighting on touch */
+    -webkit-user-select: none;
     user-select: none;
 }
 
@@ -29,7 +29,7 @@ header {
 }
 
 header h1 {
-    color: #fbbf24; /* Golden Hue */
+    color: #fbbf24;
     font-size: 2rem;
     margin-bottom: 5px;
 }
@@ -104,7 +104,7 @@ header p {
 }
 
 #clear-btn {
-    background-color: #ef4444; /* Alert Red */
+    background-color: #ef4444;
     color: #ffffff;
     border: none;
     padding: 8px 18px;
@@ -129,7 +129,7 @@ header p {
     border-radius: 8px;
     padding: 10px;
     gap: 6px;
-    touch-action: none; /* Crucial for preventing iPadOS scroll interference */
+    touch-action: none;
 }
 
 .phi-key {
