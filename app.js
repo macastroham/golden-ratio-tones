@@ -29,6 +29,46 @@ const FIBONACCI_MULTIPLIERS = [
     1.8592, 1.5106, 1.2274, 1.9945, 1.6205, 1.3167
 ];
 
+// Neurological Engine Configuration Blueprint Map
+const NEURO_PRESETS = {
+    alpha: {
+        name: "Alpha Flow",
+        tuningMode: "fibonacci",
+        rootFreq: 440,
+        detune: 10.00,
+        filterDepth: 75,
+        swirlSpeed: 45,
+        chords: [0, 4, 7, 11] // Structured, clear harmonic framework
+    },
+    theta: {
+        name: "Theta Trance",
+        tuningMode: "spiral",
+        rootFreq: 220, // Grounded octave lower root anchor
+        detune: 6.18,  // Phi * 10 dynamic theta offset target
+        filterDepth: 45,
+        swirlSpeed: 25,
+        chords: [0, 3, 6, 9]  // Flowing, ambiguous dream clusters
+    },
+    delta: {
+        name: "Deep Delta",
+        tuningMode: "spiral",
+        rootFreq: 110, // Sub bass anchor line
+        detune: 1.62,  // True golden ratio beat configuration
+        filterDepth: 25, // Deeply buried, dark atmosphere sub cutoff
+        swirlSpeed: 10,  // Viscous, ultra-slow landscape movement
+        chords: [0, 5, 12]
+    },
+    astral: {
+        name: "Astral Flight",
+        tuningMode: "spiral",
+        rootFreq: 220,
+        detune: 4.00,  // The Delta/Theta dimensional crossover threshold
+        filterDepth: 60,
+        swirlSpeed: 65,  // Fast panning cycles to build floating dissociation
+        chords: [0, 1, 5]  // Incommensurate, dense structural geometry cluster
+    }
+};
+
 // Initialize the Hypnotic Audio Ecosystem
 function initAudio() {
     if (audioCtx) return; 
@@ -104,7 +144,32 @@ function calculateGoldenFrequency(step, root) {
     }
 }
 
-// Strictly updates visual UI text labels without modifying layout structural event states
+// Synchronizes sliders and radio components to mirror background computational logic state shifts
+function updateSlidersUI() {
+    document.getElementById('root-freq').value = rootFrequency;
+    document.getElementById('root-val').innerText = rootFrequency;
+    
+    document.getElementById('hypnotic-detune').value = binauralDetuneHz;
+    document.getElementById('detune-val').innerText = binauralDetuneHz.toFixed(2);
+    
+    document.getElementById('space-swirl').value = Math.round((pannerLfoSpeed / 2.0) * 100);
+    document.getElementById('swirl-val').innerText = document.getElementById('space-swirl').value;
+    
+    document.getElementById('filter-cutoff').value = filterDepthPercent;
+    document.getElementById('filter-val').innerText = filterDepthPercent;
+
+    document.querySelector(`input[name="tuning-mode"][value="${currentTuningMode}"]`).checked = true;
+    
+    const subtitle = document.getElementById('scale-subtitle');
+    if (currentTuningMode === 'fibonacci') {
+        subtitle.innerText = "Mathematical audio synthesis based on the 13:8 Fibonacci Integer Proportions";
+        subtitle.style.color = "#a78bfa";
+    } else {
+        subtitle.innerText = "Mathematical audio synthesis based on the Golden Ratio interval (833.09 cents)";
+        subtitle.style.color = "#94a3b8";
+    }
+}
+
 function updateKeyboardLabels() {
     const keys = document.querySelectorAll('.phi-key');
     keys.forEach(key => {
@@ -115,7 +180,6 @@ function updateKeyboardLabels() {
             labelSpan.innerText = `${currentFreq}Hz`;
         }
         
-        // Ensure active visual class remains synchronized
         if (activeVoices[i]) {
             key.classList.add('active');
         } else {
@@ -124,7 +188,6 @@ function updateKeyboardLabels() {
     });
 }
 
-// Binds interaction pointer routines EXACTLY ONCE upon unmuting overlay clearance
 function initializeKeyboardListeners() {
     const keys = document.querySelectorAll('.phi-key');
     keys.forEach(key => {
@@ -133,6 +196,9 @@ function initializeKeyboardListeners() {
         key.addEventListener('pointerdown', (e) => {
             e.preventDefault();
             e.stopPropagation();
+            // Clear current preset selection styling on manual key intervention
+            document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('selected'));
+            
             if (currentKeyboardMode === 'toggle') {
                 toggleVoice(i);
             } else {
@@ -155,6 +221,51 @@ function initializeKeyboardListeners() {
                 voiceOff(i);
             }
         });
+    });
+}
+
+// Core execution engine for deploying entrainment states cleanly
+function loadNeuroPreset(presetKey) {
+    const preset = NEURO_PRESETS[presetKey];
+    if (!preset) return;
+
+    if (!audioCtx) initAudio();
+    clearAllTones(); // Clear old notes cleanly
+
+    // 1. Structural Logic Mappings Assignment
+    currentTuningMode = preset.tuningMode;
+    rootFrequency = preset.rootFreq;
+    binauralDetuneHz = preset.detune;
+    filterDepthPercent = preset.filterDepth;
+    pannerLfoSpeed = (preset.swirlSpeed / 100) * 2.0;
+
+    // 2. Hardware Graph Parameters Intersect Updating
+    updateFilterFrequency();
+    if (spatialLfoNode && audioCtx) {
+        spatialLfoNode.frequency.setValueAtTime(pannerLfoSpeed, audioCtx.currentTime);
+    }
+
+    // 3. System Viewport State Synchronizations
+    updateSlidersUI();
+    updateKeyboardLabels();
+
+    // 4. Force System to Toggle Latch Mode for uninterrupted drone entrainment
+    currentKeyboardMode = 'toggle';
+    document.getElementById('keyboard-mode-title').innerText = "The Phi Keyboard Array (Toggle Mode)";
+    document.querySelector('input[name="keyboard-mode"][value="toggle"]').checked = true;
+
+    // 5. Fire Sequential Voices Attacks Across Target Chords Mapping Matrix Arrays
+    preset.chords.forEach(index => {
+        voiceOn(index);
+    });
+
+    // 6. Manage Selected Stylings States Across Preset Button Interfaces
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+        if (btn.dataset.preset === presetKey) {
+            btn.classList.add('selected');
+        } else {
+            btn.classList.remove('selected');
+        }
     });
 }
 
@@ -231,6 +342,7 @@ function clearAllTones() {
     Object.keys(activeVoices).forEach(index => {
         voiceOff(index);
     });
+    document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('selected'));
 }
 
 function drawOscilloscope() {
@@ -274,7 +386,7 @@ function drawOscilloscope() {
 document.getElementById('activation-overlay').addEventListener('pointerdown', (e) => {
     e.preventDefault();
     initAudio();
-    initializeKeyboardListeners(); // Hooks up structural interaction routes completely right here
+    initializeKeyboardListeners();
     document.getElementById('activation-overlay').style.opacity = '0';
     setTimeout(() => document.getElementById('activation-overlay').style.display = 'none', 500);
 });
@@ -285,15 +397,28 @@ document.getElementById('clear-btn').addEventListener('pointerdown', (e) => {
     clearAllTones();
 });
 
+// Bindings for newly mapped Preset Module trigger loops
+document.querySelectorAll('.preset-btn').forEach(btn => {
+    const handlePresetTap = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        loadNeuroPreset(btn.dataset.preset);
+    };
+    btn.addEventListener('pointerdown', handlePresetTap);
+});
+
 document.getElementById('root-freq').addEventListener('input', (e) => {
     rootFrequency = parseFloat(e.target.value);
     document.getElementById('root-val').innerText = rootFrequency;
+    document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('selected'));
     updateKeyboardLabels(); 
 });
 
 document.querySelectorAll('input[name="tuning-mode"]').forEach(radio => {
     radio.addEventListener('change', (e) => {
         currentTuningMode = e.target.value;
+        document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('selected'));
+        
         const subtitle = document.getElementById('scale-subtitle');
         if (currentTuningMode === 'fibonacci') {
             subtitle.innerText = "Mathematical audio synthesis based on the 13:8 Fibonacci Integer Proportions";
@@ -331,6 +456,7 @@ document.querySelectorAll('input[name="keyboard-mode"]').forEach(radio => {
 document.getElementById('hypnotic-detune').addEventListener('input', (e) => {
     binauralDetuneHz = parseFloat(e.target.value);
     document.getElementById('detune-val').innerText = binauralDetuneHz.toFixed(2);
+    document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('selected'));
     
     Object.keys(activeVoices).forEach(index => {
         const baseFreq = calculateGoldenFrequency(index, rootFrequency);
@@ -344,6 +470,7 @@ document.getElementById('space-swirl').addEventListener('input', (e) => {
     const intensity = parseInt(e.target.value);
     document.getElementById('swirl-val').innerText = intensity;
     pannerLfoSpeed = (intensity / 100) * 2.0; 
+    document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('selected'));
     if (spatialLfoNode && audioCtx) {
         spatialLfoNode.frequency.setValueAtTime(pannerLfoSpeed, audioCtx.currentTime);
     }
@@ -352,6 +479,7 @@ document.getElementById('space-swirl').addEventListener('input', (e) => {
 document.getElementById('filter-cutoff').addEventListener('input', (e) => {
     filterDepthPercent = parseInt(e.target.value);
     document.getElementById('filter-val').innerText = filterDepthPercent;
+    document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('selected'));
     updateFilterFrequency();
 });
 
@@ -372,5 +500,5 @@ document.getElementById('master-volume').addEventListener('input', (e) => {
     if (masterGainNode) masterGainNode.gain.setValueAtTime(val, audioCtx.currentTime);
 });
 
-// Run mathematical layout labels generation on structural load
+// Run layout verification pass
 updateKeyboardLabels();
