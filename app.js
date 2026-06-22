@@ -3,64 +3,97 @@ let audioCtx = null;
 let masterGainNode = null;
 let distortionNode = null;
 let analyserNode = null;
+let spaceFilterNode = null;
+let spatialLfoNode = null;
 
 // Audio Configuration Variables
 let rootFrequency = 440.00;
-let releaseTime = 2.5;
-let activeVoices = {}; // Tracks running oscillators by key index
+let releaseTime = 4.5; // Bumped default value up for dreamier drone decays
+let activeVoices = {}; // Tracks running dual-oscillators by key index
+
+// Hypnotic Parameter Variables
+let binauralDetuneHz = 1.62; // Golden Ratio approximation for micro-detuning
+let pannerLfoSpeed = 0.3; // Spatial frequency panning LFO rate
+let filterDepthPercent = 65;
 
 // Interaction and Tuning State Variables
-let currentTuningMode = 'spiral'; // 'spiral' or 'fibonacci'
-let currentKeyboardMode = 'toggle'; // 'toggle' or 'touch'
+let currentTuningMode = 'spiral'; 
+let currentKeyboardMode = 'toggle'; 
 
 // The Golden Scale Constants
 const PHI_INTERVAL_CENTS = 833.0923;
 
 // Fibonacci 13:8 Progression Multipliers
 const FIBONACCI_MULTIPLIERS = [
-    1.0000, // K0: Root (1/1)
-    1.6250, // K1: 13/8 Ratio
-    1.3164, // K2: (13/8)^2 / 2
-    1.0696, // K3: (13/8)^3 / 4
-    1.7381, // K4: (13/8)^4 / 4
-    1.4082, // K5: (13/8)^5 / 8
-    1.1441, // K6: (13/8)^6 / 16
-    1.8592, // K7: (13/8)^7 / 16
-    1.5106, // K8: (13/8)^8 / 32
-    1.2274, // K9: (13/8)^9 / 64
-    1.9945, // K10: (13/8)^10 / 64
-    1.6205, // K11: (13/8)^11 / 128
-    1.3167  // K12: (13/8)^12 / 256
+    1.0000, 1.6250, 1.3164, 1.0696, 1.7381, 1.4082, 1.1441, 
+    1.8592, 1.5106, 1.2274, 1.9945, 1.6205, 1.3167
 ];
 
-// Initialize the Audio Nodes Ecosystem
+// Initialize the Hypnotic Audio Ecosystem
 function initAudio() {
     if (audioCtx) return; 
     
     const AudioContextClass = window.AudioContext || window.webkitAudioContext;
     audioCtx = new AudioContextClass();
     
-    // Master Gain
+    // Master Gain Node Setup
     masterGainNode = audioCtx.createGain();
     masterGainNode.gain.setValueAtTime(0.7, audioCtx.currentTime);
 
-    // Analyser Node for Visuals
+    // Analyser Node Setup
     analyserNode = audioCtx.createAnalyser();
     analyserNode.fftSize = 2048;
 
-    // Waveshaper Distortion Node for Warmth
+    // Resonant Low-Pass Filter Node Setup for atmospheric tides
+    spaceFilterNode = audioCtx.createBiquadFilter();
+    spaceFilterNode.type = 'lowpass';
+    updateFilterFrequency();
+    spaceFilterNode.Q.setValueAtTime(4.0, audioCtx.currentTime); // Sweet warm resonance
+
+    // Waveshaper Distortion Node Setup
     distortionNode = audioCtx.createWaveShaper();
     updateWaveShaperCurve(40);
 
-    // Connections: [Voice] -> Distortion -> Master Gain -> Analyser -> Output
-    distortionNode.connect(masterGainNode);
+    // Dynamic Spatial Panning Module Configuration (LFO Node Modulating a Stereo Panner)
+    setupSpatialLFO();
+
+    // Node Routing Map: [Dual Voices] -> Distortion -> Space Filter -> Master Gain -> Analyser -> Output
+    distortionNode.connect(spaceFilterNode);
+    spaceFilterNode.connect(masterGainNode);
     masterGainNode.connect(analyserNode);
     analyserNode.connect(audioCtx.destination);
     
     drawOscilloscope();
 }
 
-// Generate hyperbolic tangent (tanh) distortion curve for warm even harmonics
+// Configures a cyclic slow panner module to swirl drone soundscapes
+function setupSpatialLFO() {
+    if (!audioCtx) return;
+    
+    // Low Frequency Oscillator for movement
+    spatialLfoNode = audioCtx.createOscillator();
+    spatialLfoNode.type = 'sine';
+    spatialLfoNode.frequency.setValueAtTime(pannerLfoSpeed, audioCtx.currentTime);
+    
+    // Custom gain step acts as filter depth mapping
+    const lfoGain = audioCtx.createGain();
+    lfoGain.gain.setValueAtTime(400, audioCtx.currentTime); // Swings filter cutoff by 400Hz up and down
+    
+    // Cross link the LFO directly into the lowpass filter frequency line to make it breathe automatically
+    spatialLfoNode.connect(lfoGain);
+    lfoGain.connect(spaceFilterNode.frequency);
+    spatialLfoNode.start();
+}
+
+// Map filter range calculations safely
+function updateFilterFrequency() {
+    if (!spaceFilterNode || !audioCtx) return;
+    // Map slider 10%-100% cleanly to warm audio ranges (300Hz to 5000Hz)
+    const targetCutoff = 300 + (filterDepthPercent / 100) * 4700;
+    spaceFilterNode.frequency.setValueAtTime(targetCutoff, audioCtx.currentTime);
+}
+
+// Generate hyperbolic tangent distortion curve
 function updateWaveShaperCurve(amount) {
     if (!distortionNode) return;
     const k = typeof amount === 'number' ? amount : 40;
@@ -75,7 +108,7 @@ function updateWaveShaperCurve(amount) {
     distortionNode.value = curve;
 }
 
-// Calculate precise frequency depending on chosen tuning mode architecture
+// Calculate base pitch frequencies
 function calculateGoldenFrequency(step, root) {
     if (currentTuningMode === 'fibonacci') {
         return root * FIBONACCI_MULTIPLIERS[step];
@@ -85,7 +118,7 @@ function calculateGoldenFrequency(step, root) {
     }
 }
 
-// Dynamically populate the DOM with the 13 mathematical keys and mount responsive routing
+// Dynamically populate the DOM and map interactions
 function buildKeyboard() {
     const keyboardContainer = document.getElementById('keyboard');
     keyboardContainer.innerHTML = ''; 
@@ -98,20 +131,16 @@ function buildKeyboard() {
         const currentFreq = calculateGoldenFrequency(i, rootFrequency).toFixed(1);
         key.innerHTML = `<span>K${i}</span><span style="font-size:0.65rem; color:#64748b">${currentFreq}Hz</span>`;
 
-        // Intercept downward interactions
         key.addEventListener('pointerdown', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            
             if (currentKeyboardMode === 'toggle') {
                 toggleVoice(i);
             } else {
-                // Touch Mode: Trigger immediate entry phase
                 voiceOn(i);
             }
         });
 
-        // Intercept extraction/lifting actions (Only performs structural work in Touch mode)
         key.addEventListener('pointerup', (e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -120,7 +149,6 @@ function buildKeyboard() {
             }
         });
 
-        // Safety handler for tracking finger trailing off physical borders on an iPad screen
         key.addEventListener('pointerleave', (e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -129,7 +157,6 @@ function buildKeyboard() {
             }
         });
         
-        // Retain visual active illumination if the voice is already latch running
         if (activeVoices[i]) {
             key.classList.add('active');
         }
@@ -138,7 +165,7 @@ function buildKeyboard() {
     }
 }
 
-// Latch Controller for Toggle Mode Branch
+// Unified Latch Controller
 function toggleVoice(index) {
     if (!audioCtx) initAudio();
     if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
@@ -150,29 +177,50 @@ function toggleVoice(index) {
     }
 }
 
-// Trigger Voice Attack Phase
+// Trigger Voice Attack Phase using Dual-Oscillator Stereo Binaural structures
 function voiceOn(index) {
     if (!audioCtx) initAudio();
     if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-    
-    // Prevent oscillator thread stacking errors if user slams keys rapidly
     if (activeVoices[index]) return;
 
-    const freq = calculateGoldenFrequency(index, rootFrequency);
+    const baseFreq = calculateGoldenFrequency(index, rootFrequency);
     
-    const osc = audioCtx.createOscillator();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+    // Construct Left Ear Channel
+    const oscLeft = audioCtx.createOscillator();
+    oscLeft.type = 'sine';
+    oscLeft.frequency.setValueAtTime(baseFreq, audioCtx.currentTime);
+    
+    const pannerLeft = audioCtx.createStereoPanner();
+    pannerLeft.pan.setValueAtTime(-1.0, audioCtx.currentTime); // Hard Left
 
+    // Construct Right Ear Channel with micro-detuned binaural beat offset
+    const oscRight = audioCtx.createOscillator();
+    oscRight.type = 'sine';
+    oscRight.frequency.setValueAtTime(baseFreq + binauralDetuneHz, audioCtx.currentTime);
+    
+    const pannerRight = audioCtx.createStereoPanner();
+    pannerRight.pan.setValueAtTime(1.0, audioCtx.currentTime); // Hard Right
+
+    // Shared Voice Master Gain Envelope
     const voiceGain = audioCtx.createGain();
     voiceGain.gain.setValueAtTime(0, audioCtx.currentTime);
-    voiceGain.gain.linearRampToValueAtTime(0.25, audioCtx.currentTime + 0.05);
+    // Extra smooth, long fade-in for majestic drone layer blends
+    voiceGain.gain.linearRampToValueAtTime(0.18, audioCtx.currentTime + 0.5);
 
-    osc.connect(voiceGain);
+    // Internal Signal Paths: Osc -> Stereo Panners -> Master Voice Gain Node -> Distortion
+    oscLeft.connect(pannerLeft);
+    pannerLeft.connect(voiceGain);
+
+    oscRight.connect(pannerRight);
+    pannerRight.connect(voiceGain);
+
     voiceGain.connect(distortionNode);
-    osc.start();
+    
+    oscLeft.start();
+    oscRight.start();
 
-    activeVoices[index] = { osc, voiceGain };
+    // Cache the dual configuration context reference array safely
+    activeVoices[index] = { oscLeft, oscRight, voiceGain };
     
     const keyElement = document.querySelector(`.phi-key[data-index="${index}"]`);
     if (keyElement) keyElement.classList.add('active');
@@ -190,18 +238,19 @@ function voiceOff(index) {
     voice.voiceGain.gain.setValueAtTime(voice.voiceGain.gain.value, now);
     voice.voiceGain.gain.exponentialRampToValueAtTime(0.0001, now + releaseTime);
 
-    voice.osc.stop(now + releaseTime);
+    voice.oscLeft.stop(now + releaseTime);
+    voice.oscRight.stop(now + releaseTime);
     delete activeVoices[index];
 }
 
-// Panic Function: Instantly clear all active tone channels
+// Panic Function
 function clearAllTones() {
     Object.keys(activeVoices).forEach(index => {
         voiceOff(index);
     });
 }
 
-// Real-Time Canvas Oscilloscope Rendering Loop
+// Real-Time Oscilloscope Rendering Loop
 function drawOscilloscope() {
     const canvas = document.getElementById('oscilloscope');
     const canvasCtx = canvas.getContext('2d');
@@ -259,46 +308,73 @@ document.getElementById('root-freq').addEventListener('input', (e) => {
     buildKeyboard(); 
 });
 
-// Tuning Scale Radio Selection Management + Subtitle Synchronization
+// Tuning Scale Radio Selection Management
 document.querySelectorAll('input[name="tuning-mode"]').forEach(radio => {
     radio.addEventListener('change', (e) => {
         currentTuningMode = e.target.value;
-        
         const subtitle = document.getElementById('scale-subtitle');
         if (currentTuningMode === 'fibonacci') {
             subtitle.innerText = "Mathematical audio synthesis based on the 13:8 Fibonacci Integer Proportions";
-            subtitle.style.color = "#a78bfa"; // Soft purple shift for distinct visual context
+            subtitle.style.color = "#a78bfa";
         } else {
             subtitle.innerText = "Mathematical audio synthesis based on the Golden Ratio interval (833.09 cents)";
-            subtitle.style.color = "#94a3b8"; // Restores standard slate gray
+            subtitle.style.color = "#94a3b8";
         }
         
-        // Dynamically recalculate frequencies of any actively running oscillators
+        // Live shift working frequencies safely for running dual voices
         Object.keys(activeVoices).forEach(index => {
             const targetFreq = calculateGoldenFrequency(index, rootFrequency);
             if (audioCtx) {
-                activeVoices[index].osc.frequency.setValueAtTime(targetFreq, audioCtx.currentTime);
+                activeVoices[index].oscLeft.frequency.setValueAtTime(targetFreq, audioCtx.currentTime);
+                activeVoices[index].oscRight.frequency.setValueAtTime(targetFreq + binauralDetuneHz, audioCtx.currentTime);
             }
         });
-        
         buildKeyboard(); 
     });
 });
 
-// Keyboard Mode Input Controls Tracking (Toggle vs Touch Mode execution states)
+// Keyboard Mode Input Controls Tracking
 document.querySelectorAll('input[name="keyboard-mode"]').forEach(radio => {
     radio.addEventListener('change', (e) => {
         currentKeyboardMode = e.target.value;
-        
         const titleElement = document.getElementById('keyboard-mode-title');
         if (currentKeyboardMode === 'touch') {
             titleElement.innerText = "The Phi Keyboard Array (Touch Mode)";
-            clearAllTones(); // Purge trailing background tones when pivoting to active touch performance
+            clearAllTones(); 
         } else {
             titleElement.innerText = "The Phi Keyboard Array (Toggle Mode)";
         }
         buildKeyboard();
     });
+});
+
+// Hypnotic Parameter Slider Binding Adjustments
+document.getElementById('hypnotic-detune').addEventListener('input', (e) => {
+    binauralDetuneHz = parseFloat(e.target.value);
+    document.getElementById('detune-val').innerText = binauralDetuneHz.toFixed(2);
+    
+    // Dynamically adjust active right-ear offsets instantly in live playback
+    Object.keys(activeVoices).forEach(index => {
+        const baseFreq = calculateGoldenFrequency(index, rootFrequency);
+        if (audioCtx) {
+            activeVoices[index].oscRight.frequency.setValueAtTime(baseFreq + binauralDetuneHz, audioCtx.currentTime);
+        }
+    });
+});
+
+document.getElementById('space-swirl').addEventListener('input', (e) => {
+    const intensity = parseInt(e.target.value);
+    document.getElementById('swirl-val').innerText = intensity;
+    pannerLfoSpeed = (intensity / 100) * 2.0; // Scaled map up to 2Hz max speed
+    if (spatialLfoNode && audioCtx) {
+        spatialLfoNode.frequency.setValueAtTime(pannerLfoSpeed, audioCtx.currentTime);
+    }
+});
+
+document.getElementById('filter-cutoff').addEventListener('input', (e) => {
+    filterDepthPercent = parseInt(e.target.value);
+    document.getElementById('filter-val').innerText = filterDepthPercent;
+    updateFilterFrequency();
 });
 
 document.getElementById('warmth').addEventListener('input', (e) => {
