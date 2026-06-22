@@ -149,7 +149,7 @@ header p {
     transition: background 0.1s ease, transform 0.05s ease, border-color 0.1s ease;
 }
 
-/* Visual Active States */
+/* Visual Active Toggle State */
 .phi-key.active {
     background: linear-gradient(180deg, #fbbf24 0%, #d97706 100%);
     color: #0d0f12;
