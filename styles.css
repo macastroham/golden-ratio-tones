@@ -189,6 +189,29 @@ header p {
     color: #cbd5e1;
 }
 
+/* Radio Button Layouts */
+.radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 5px;
+}
+
+.radio-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: #cbd5e1;
+}
+
+.radio-label input[type="radio"] {
+    accent-color: #fbbf24;
+    width: 16px;
+    height: 16px;
+}
+
 input[type="range"] {
     -webkit-appearance: none;
     width: 100%;
