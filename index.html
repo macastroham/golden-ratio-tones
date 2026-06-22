@@ -19,12 +19,12 @@
     <main id="app-container">
         <header>
             <h1>Golden 13-Tone Scale Explorer</h1>
-            <p>Mathematical audio synthesis based on the Golden Ratio interval (833.09 cents)</p>
+            <p id="scale-subtitle">Mathematical audio synthesis based on the Golden Ratio interval (833.09 cents)</p>
         </header>
 
         <section class="keyboard-section">
             <div class="keyboard-header">
-                <h2>The Phi Keyboard Array (Toggle Mode)</h2>
+                <h2 id="keyboard-mode-title">The Phi Keyboard Array (Toggle Mode)</h2>
                 <button id="clear-btn">Clear All Tones</button>
             </div>
             <div id="keyboard">
@@ -54,14 +54,31 @@
             </div>
 
             <div class="control-card">
-                <h3>Acoustic Warmth & Dynamics</h3>
+                <h3>Keyboard Interaction Settings</h3>
                 <div class="control-group">
-                    <label for="warmth">Saturation (Tanh Distortion): <span id="warmth-val">40</span>%</label>
-                    <input type="range" id="warmth" min="0" max="100" step="1" value="40">
+                    <label>Key Trigger Behavior</label>
+                    <div class="radio-group">
+                        <label class="radio-label">
+                            <input type="radio" name="keyboard-mode" value="toggle" checked>
+                            Toggle Mode (Latching Drones)
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="keyboard-mode" value="touch">
+                            Touch Mode (Momentary Triggers)
+                        </label>
+                    </div>
                 </div>
                 <div class="control-group">
                     <label for="release">Envelope Release Time: <span id="release-val">2.5</span>s</label>
                     <input type="range" id="release" min="0.1" max="8.0" step="0.1" value="2.5">
+                </div>
+            </div>
+
+            <div class="control-card">
+                <h3>Acoustic Warmth & Master Mix</h3>
+                <div class="control-group">
+                    <label for="warmth">Saturation (Tanh Distortion): <span id="warmth-val">40</span>%</label>
+                    <input type="range" id="warmth" min="0" max="100" step="1" value="40">
                 </div>
                 <div class="control-group">
                     <label for="master-volume">Master Volume: <span id="volume-val">70</span>%</label>
