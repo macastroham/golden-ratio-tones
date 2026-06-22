@@ -54,7 +54,23 @@
             </div>
 
             <div class="control-card">
-                <h3>Keyboard Interaction Settings</h3>
+                <h3>Hypnotic & Trance Modulation</h3>
+                <div class="control-group">
+                    <label for="hypnotic-detune">Entrainment Detune (Binaural Beats): <span id="detune-val">1.62</span> Hz</label>
+                    <input type="range" id="hypnotic-detune" min="0.0" max="10.0" step="0.05" value="1.62">
+                </div>
+                <div class="control-group">
+                    <label for="space-swirl">Spatial Panning Speed (LFO): <span id="swirl-val">30</span>%</label>
+                    <input type="range" id="space-swirl" min="0" max="100" step="1" value="30">
+                </div>
+                <div class="control-group">
+                    <label for="filter-cutoff">Resonant Filter Depth: <span id="filter-val">65</span>%</label>
+                    <input type="range" id="filter-cutoff" min="10" max="100" step="1" value="65">
+                </div>
+            </div>
+
+            <div class="control-card">
+                <h3>Interaction & Mix Settings</h3>
                 <div class="control-group">
                     <label>Key Trigger Behavior</label>
                     <div class="radio-group">
@@ -69,16 +85,8 @@
                     </div>
                 </div>
                 <div class="control-group">
-                    <label for="release">Envelope Release Time: <span id="release-val">2.5</span>s</label>
-                    <input type="range" id="release" min="0.1" max="8.0" step="0.1" value="2.5">
-                </div>
-            </div>
-
-            <div class="control-card">
-                <h3>Acoustic Warmth & Master Mix</h3>
-                <div class="control-group">
-                    <label for="warmth">Saturation (Tanh Distortion): <span id="warmth-val">40</span>%</label>
-                    <input type="range" id="warmth" min="0" max="100" step="1" value="40">
+                    <label for="release">Envelope Release Time: <span id="release-val">4.5</span>s</label>
+                    <input type="range" id="release" min="0.1" max="8.0" step="0.1" value="4.5">
                 </div>
                 <div class="control-group">
                     <label for="master-volume">Master Volume: <span id="volume-val">70</span>%</label>
