@@ -7,14 +7,13 @@ let analyserNode = null;
 // Audio Configuration Variables
 let rootFrequency = 440.00;
 let releaseTime = 2.5;
-let activeVoices = {}; // Tracks running oscillators by key index
+let activeVoices = {}; // Tracks latched oscillators by key index
 
 // The Golden Scale Constants
 const PHI_INTERVAL_CENTS = 833.0923;
 
 // Initialize the Audio Nodes Ecosystem
 function initAudio() {
-    // Create cross-browser audio context
     const AudioContextClass = window.AudioContext || window.webkitAudioContext;
     audioCtx = new AudioContextClass();
     
@@ -26,7 +25,7 @@ function initAudio() {
     analyserNode = audioCtx.createAnalyser();
     analyserNode.fftSize = 2048;
 
-    // Waveshaper Distortion Node for "Warmth"
+    // Waveshaper Distortion Node for Warmth
     distortionNode = audioCtx.createWaveShaper();
     updateWaveShaperCurve(40); // Initial 40% warmth setting
 
@@ -49,7 +48,6 @@ function updateWaveShaperCurve(amount) {
     
     for (let i = 0; i < n_samples; ++i) {
         const x = (i * 2) / n_samples - 1;
-        // Tanh curve approximation for classic harmonic saturation
         curve[i] = (3 + k) * x * 20 * deg / (Math.PI + k * Math.abs(x));
     }
     distortionNode.value = curve;
@@ -57,7 +55,6 @@ function updateWaveShaperCurve(amount) {
 
 // Calculate precise frequency for a given step of the 13-tone scale
 function calculateGoldenFrequency(step, root) {
-    // Cumulative cents calculation for the 13-tone structure
     const totalCents = (step * PHI_INTERVAL_CENTS) % 1200;
     return root * Math.pow(2, totalCents / 1200);
 }
@@ -65,57 +62,67 @@ function calculateGoldenFrequency(step, root) {
 // Dynamically populate the DOM with the 13 mathematical keys
 function buildKeyboard() {
     const keyboardContainer = document.getElementById('keyboard');
-    keyboardContainer.innerHTML = ''; // Clear container
+    keyboardContainer.innerHTML = ''; 
 
     for (let i = 0; i < 13; i++) {
         const key = document.createElement('div');
         key.classList.add('phi-key');
         key.dataset.index = i;
         
-        // Label display calculating current frequency values dynamically
         const currentFreq = calculateGoldenFrequency(i, rootFrequency).toFixed(1);
         key.innerHTML = `<span>K${i}</span><span style="font-size:0.65rem; color:#64748b">${currentFreq}Hz</span>`;
 
-        // Handle both mouse and mobile touch triggers uniformly
-        key.addEventListener('mousedown', (e) => { e.preventDefault(); voiceOn(i); });
-        key.addEventListener('touchstart', (e) => { e.preventDefault(); voiceOn(i); });
+        // Intercept touch and mouse events uniformly for the latch toggle
+        const handleToggle = (e) => {
+            e.preventDefault();
+            toggleVoice(i);
+        };
+
+        key.addEventListener('mousedown', handleToggle);
+        key.addEventListener('touchstart', handleToggle);
         
+        // Retain visual active status if the key is already running during an f0 recalculation
+        if (activeVoices[i]) {
+            key.classList.add('active');
+        }
+
         keyboardContainer.appendChild(key);
     }
 }
 
-// Trigger Voice Attack Phase
-function voiceOn(index) {
+// Unified Latch Controller
+function toggleVoice(index) {
     if (!audioCtx) return;
     if (audioCtx.state === 'suspended') audioCtx.resume();
-    
-    // If voice already running, slice it out cleanly first
+
     if (activeVoices[index]) {
         voiceOff(index);
+    } else {
+        voiceOn(index);
     }
+}
 
+// Trigger Voice Attack Phase (Latches indefinitely)
+function voiceOn(index) {
     const freq = calculateGoldenFrequency(index, rootFrequency);
     
-    // Construct individual Voice Oscillator
     const osc = audioCtx.createOscillator();
     osc.type = 'sine';
     osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
 
-    // Individual Envelope Node to control clickless gain stages
     const voiceGain = audioCtx.createGain();
     voiceGain.gain.setValueAtTime(0, audioCtx.currentTime);
-    // Smooth linear attack to avoid digital clicks
-    voiceGain.gain.linearRampToValueAtTime(0.25, audioCtx.currentTime + 0.05);
+    // Smooth linear attack curve optimized for layering polyphonic chords
+    voiceGain.gain.linearRampToValueAtTime(0.25, audioCtx.currentTime + 0.08);
 
-    // Route voice through distortion engine
     osc.connect(voiceGain);
     voiceGain.connect(distortionNode);
-    
     osc.start();
 
-    // Store references for tracking release phase termination
     activeVoices[index] = { osc, voiceGain };
-    document.querySelector(`.phi-key[data-index="${index}"]`).classList.add('active');
+    
+    const keyElement = document.querySelector(`.phi-key[data-index="${index}"]`);
+    if (keyElement) keyElement.classList.add('active');
 }
 
 // Trigger Voice Release Phase
@@ -123,27 +130,23 @@ function voiceOff(index) {
     const voice = activeVoices[index];
     if (!voice) return;
 
-    const targetKey = document.querySelector(`.phi-key[data-index="${index}"]`);
-    if (targetKey) targetKey.classList.remove('active');
+    const keyElement = document.querySelector(`.phi-key[data-index="${index}"]`);
+    if (keyElement) keyElement.classList.remove('active');
 
     const now = audioCtx.currentTime;
-    // Set immediate anchor for exponential ramp calculation safety
     voice.voiceGain.gain.setValueAtTime(voice.voiceGain.gain.value, now);
     voice.voiceGain.gain.exponentialRampToValueAtTime(0.0001, now + releaseTime);
 
-    // Cleanly kill oscillator thread once completely silent
     voice.osc.stop(now + releaseTime);
     delete activeVoices[index];
 }
 
-// Global Touch/Mouse Up listener to ensure stuck notes are avoided
-function globalRelease() {
+// Panic Function: Instantly clear all active tone channels
+function clearAllTones() {
     Object.keys(activeVoices).forEach(index => {
         voiceOff(index);
     });
 }
-window.addEventListener('mouseup', globalRelease);
-window.addEventListener('touchend', globalRelease);
 
 // Real-Time Canvas Oscilloscope Rendering Loop
 function drawOscilloscope() {
@@ -152,7 +155,6 @@ function drawOscilloscope() {
     const bufferLength = analyserNode.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
 
-    // Adjust internal resolution to match viewport layout sizing
     canvas.width = canvas.clientWidth * window.devicePixelRatio;
     canvas.height = canvas.clientHeight * window.devicePixelRatio;
 
@@ -184,17 +186,24 @@ function drawOscilloscope() {
     render();
 }
 
-// DOM Interface Event Binding Layout
+// DOM Interface Control Bindings
 document.getElementById('activation-overlay').addEventListener('click', () => {
     initAudio();
     document.getElementById('activation-overlay').style.opacity = '0';
     setTimeout(() => document.getElementById('activation-overlay').style.display = 'none', 500);
 });
 
+// Clear Button Event Handling for Mouse and iPad Touch Layouts
+document.getElementById('clear-btn').addEventListener('click', clearAllTones);
+document.getElementById('clear-btn').addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    clearAllTones();
+});
+
 document.getElementById('root-freq').addEventListener('input', (e) => {
     rootFrequency = parseFloat(e.target.value);
     document.getElementById('root-val').innerText = rootFrequency;
-    buildKeyboard(); // Refresh key text displays with updated values
+    buildKeyboard(); 
 });
 
 document.getElementById('warmth').addEventListener('input', (e) => {
@@ -214,5 +223,5 @@ document.getElementById('master-volume').addEventListener('input', (e) => {
     if (masterGainNode) masterGainNode.gain.setValueAtTime(val, audioCtx.currentTime);
 });
 
-// Primary Boot Sequence Configuration Execution
+// Primary Initialization
 buildKeyboard();
