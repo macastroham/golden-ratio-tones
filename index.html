@@ -38,6 +38,19 @@
                     <label for="root-freq">Root Frequency (f0): <span id="root-val">440</span> Hz</label>
                     <input type="range" id="root-freq" min="220" max="880" step="1" value="440">
                 </div>
+                <div class="control-group">
+                    <label>Mathematical Tuning Architecture</label>
+                    <div class="radio-group">
+                        <label class="radio-label">
+                            <input type="radio" name="tuning-mode" value="spiral" checked>
+                            833.09c Continuous Spiral
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="tuning-mode" value="fibonacci">
+                            13:8 Fibonacci Integer Scale
+                        </label>
+                    </div>
+                </div>
             </div>
 
             <div class="control-card">
