@@ -118,7 +118,6 @@ function setupSpatialLFO() {
     spatialLfoNode.start();
 }
 
-// Map filter range calculations safely
 function updateFilterFrequency() {
     if (!spaceFilterNode || !audioCtx) return;
     const targetCutoff = 300 + (filterDepthPercent / 100) * 4700;
@@ -333,7 +332,6 @@ function voiceOff(index) {
     delete activeVoices[index];
 }
 
-// Clear Button
 function clearAllTones() {
     Object.keys(activeVoices).forEach(index => {
         voiceOff(index);
@@ -341,13 +339,14 @@ function clearAllTones() {
     document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('selected'));
 }
 
-// SAFE GEOMETRIC PHOTIC ENGINE
+// ENVELOPING CHROMATIC PHOTIC MANDALA ENGINE
 function drawSafeMandala() {
     const canvas = document.getElementById('mandala-canvas');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     
     let angleOffset = 0;
+    let baseHue = 40; // Initializing warm golden hue anchor
 
     function render() {
         requestAnimationFrame(render);
@@ -355,7 +354,9 @@ function drawSafeMandala() {
         canvas.width = canvas.clientWidth * window.devicePixelRatio;
         canvas.height = canvas.clientHeight * window.devicePixelRatio;
         
-        ctx.fillStyle = '#111827';
+        // ALPHA-BLENDED MOTION TRAILS: Instead of resetting clean, paint a semi-transparent dark layer.
+        // This generates a liquid, hypnotic "afterglow tracking" effect across vector sweeps.
+        ctx.fillStyle = 'rgba(17, 24, 39, 0.06)';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
         const centerX = canvas.width / 2;
@@ -373,21 +374,32 @@ function drawSafeMandala() {
             return;
         }
 
+        // Compute entrainment timing pacing context values
         const pulsePeriod = Date.now() * 0.001 * (binauralDetuneHz * Math.PI);
-        const expansionFactor = 0.6 + Math.sin(pulsePeriod) * 0.25; 
         
-        angleOffset += 0.004;
-        ctx.lineWidth = 1.5 * window.devicePixelRatio;
-        
-        for (let ring = 1; ring <= 4; ring++) {
-            const ringScale = (ring / 4) * maxRadius * expansionFactor;
-            const alphaValue = 0.15 + (Math.sin(pulsePeriod + ring) * 0.1);
-            ctx.strokeStyle = `rgba(251, 191, 36, ${alphaValue})`;
+        // Cycle the fundamental background hue anchor slowly across time scales
+        baseHue = (baseHue + 0.05) % 360;
+        angleOffset += 0.003;
+
+        // Draw 6 concentric interwoven geometric rings for immersive spatial depth
+        for (let ring = 1; ring <= 6; ring++) {
+            // Alternating expand/contract behaviors generates fluid visual moiré wave interference patterns
+            const direction = ring % 2 === 0 ? 1 : -1;
+            const expansionFactor = 0.6 + Math.sin(pulsePeriod + (ring * 0.4) * direction) * 0.2;
+            const ringScale = (ring / 6) * maxRadius * expansionFactor;
+            
+            // CHROMATIC DISPERSION: Offset the hue of each ring using golden angles
+            const currentHue = Math.round((baseHue + (ring * 137.5)) % 360);
+            const alphaValue = 0.12 + (Math.sin(pulsePeriod + ring) * 0.06);
+            
+            ctx.strokeStyle = `hsla(${currentHue}, 85%, 60%, ${alphaValue})`;
+            ctx.lineWidth = (2.0 - (ring * 0.2)) * window.devicePixelRatio;
             
             ctx.beginPath();
+            // Generate 13 distinct geometric vertices per ring node pass
             for (let i = 0; i <= 13; i++) {
-                const angle = (i * (Math.PI * 2) / 13) + (angleOffset * (ring % 2 === 0 ? 1 : -1));
-                const r = ringScale * (1 + 0.15 * Math.sin(angle * PHI_CONSTANT));
+                const angle = (i * (Math.PI * 2) / 13) + (angleOffset * direction * (1 + ring * 0.1));
+                const r = ringScale * (1 + 0.12 * Math.sin(angle * PHI_CONSTANT));
                 const x = centerX + Math.cos(angle) * r;
                 const y = centerY + Math.sin(angle) * r;
                 
@@ -398,9 +410,11 @@ function drawSafeMandala() {
             ctx.stroke();
         }
 
-        ctx.fillStyle = `rgba(251, 191, 36, ${0.08 + Math.sin(pulsePeriod) * 0.04})`;
+        // Expansive center core breathing aura
+        const coreHue = Math.round(baseHue % 360);
+        ctx.fillStyle = `hsla(${coreHue}, 80%, 55%, ${0.04 + Math.sin(pulsePeriod) * 0.02})`;
         ctx.beginPath();
-        ctx.arc(centerX, centerY, maxRadius * 0.15 * expansionFactor, 0, Math.PI * 2);
+        ctx.arc(centerX, centerY, maxRadius * 0.25 * (0.6 + Math.sin(pulsePeriod) * 0.15), 0, Math.PI * 2);
         ctx.fill();
     }
     render();
