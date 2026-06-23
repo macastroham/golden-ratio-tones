@@ -1,5 +1,10 @@
 # Golden 13-Tone Scale Generator & Neurological Entrainment Engine
 
+**Author:** Nathan Bozeman  
+**Project Intent:** Published openly as a contribution to the global community for exploration, research, and the enhancement of psychoacoustic well-being.
+
+---
+
 A high-precision, web-based psychoacoustic synthesizer built using the native Web Audio API (AudioContext). This progressive web platform utilizes the unique mathematical properties of the Golden Ratio and Fibonacci integer relationships to generate immersive, inharmonic acoustic environments, specialized binaural beats, and target brainwave entrainment states.
 
 Optimized extensively for standard modern desktop and mobile touch viewports (including iPadOS and iOS Safari/Edge architectures), the application runs natively in any secure browser environment without external dependencies or compilation tools.
@@ -41,7 +46,7 @@ To transform sterile, cold digital waveforms into warm, rich, and therapeutic so
 The dashboard contains four precision-engineered preset configurations optimized for stereo headphone usage:
 
 * **Alpha Flow (13:8 Fibonacci | 10.00 Hz Detune):** Calm focus, creative visualization, and stress mitigation.
-* **Theta Trance (833.09c Spiral | 6.18 Hz Detune):** Deep meditation, vivid internal imagery, and REM dream access.
+* **Theta Trance (833.09c Spiral | 6.18 Hz Detune):** Deep meditation, vivid internal imagery, and REM dream access. ($\phi \times 10$)
 * **Deep Delta (833.09c Spiral | 1.62 Hz Detune):** Sub-bass grounding line targeting cellular healing and deep sleep.
 * **Astral Flight (833.09c Spiral | 4.00 Hz Detune):** Incommensurate chord clusters designed to induce spatial dissociation.
 
@@ -55,4 +60,4 @@ The dashboard contains four precision-engineered preset configurations optimized
 
 ## License
 
-This project is open-source and available under the MIT License.
+This project is licensed under the MIT License - see the LICENSE file for details. Free for all mankind to use, modify, and distribute.
