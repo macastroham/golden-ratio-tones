@@ -16,16 +16,16 @@ body {
 }
 
 #app-container {
-    max-width: 1200px;
+    max-width: 1400px; /* Expanded maximum boundary envelope for large iPad layouts */
     margin: 0 auto;
     display: flex;
     flex-direction: column;
-    gap: 30px;
+    gap: 25px;
 }
 
 header {
     text-align: center;
-    padding: 20px 0;
+    padding: 10px 0;
 }
 
 header h1 {
@@ -95,7 +95,7 @@ header p {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 15px;
+    margin-bottom: 12px;
 }
 
 .keyboard-section h2 {
@@ -124,10 +124,10 @@ header p {
 #keyboard {
     display: flex;
     width: 100%;
-    height: 220px;
+    height: 180px; /* Slightly lower profile keyboard opens up visualizer room */
     background-color: #1e293b;
     border-radius: 8px;
-    padding: 10px;
+    padding: 8px;
     gap: 6px;
     touch-action: none;
 }
@@ -155,7 +155,6 @@ header p {
     margin-top: 4px;
 }
 
-/* Visual Active Toggle State */
 .phi-key.active {
     background: linear-gradient(180deg, #fbbf24 0%, #d97706 100%);
     color: #0d0f12;
@@ -166,11 +165,38 @@ header p {
     color: #78350f;
 }
 
-/* Controls Grid Layout */
-.controls-grid {
+/* DUAL COLUMN SYSTEM SIDE-BY-SIDE GRID WORKSPACE */
+.dashboard-workspace {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    grid-template-columns: 1fr; /* Defaults to single column layout on tight smartphone formats */
+    gap: 25px;
+    align-items: start;
+}
+
+/* Media query targets desktop and horizontal landscape orientations on iPad Air panels */
+@media (min-width: 900px) {
+    .dashboard-workspace {
+        grid-template-columns: 4.5fr 5.5fr; /* Controls stack left, prominent visualizer deck on right */
+    }
+}
+
+.workspace-panel {
+    display: flex;
+    flex-direction: column;
     gap: 20px;
+}
+
+/* Stacked Controls Configurations Grid */
+.controls-stack {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+}
+
+@media (min-width: 600px) and (max-width: 899px) {
+    .controls-stack {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
 
 .control-card {
@@ -178,14 +204,12 @@ header p {
     padding: 20px;
     border-radius: 8px;
     border: 1px solid #334155;
-    display: flex;
-    flex-direction: column;
 }
 
 .control-card h3 {
     color: #fbbf24;
     font-size: 1.1rem;
-    margin-bottom: 15px;
+    margin-bottom: 12px;
     border-bottom: 1px solid #334155;
     padding-bottom: 5px;
 }
@@ -193,15 +217,15 @@ header p {
 .card-desc {
     font-size: 0.85rem;
     color: #94a3b8;
-    margin-bottom: 15px;
+    margin-bottom: 12px;
     line-height: 1.35;
 }
 
 .control-group {
-    margin-bottom: 15px;
+    margin-bottom: 12px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
 }
 
 .control-group label {
@@ -209,7 +233,6 @@ header p {
     color: #cbd5e1;
 }
 
-/* Checkbox Styling Integration */
 input[type="checkbox"] {
     accent-color: #fbbf24;
     width: 16px;
@@ -217,12 +240,11 @@ input[type="checkbox"] {
     cursor: pointer;
 }
 
-/* Radio Button Layouts */
 .radio-group {
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    margin-top: 5px;
+    gap: 8px;
+    margin-top: 3px;
 }
 
 .radio-label {
@@ -258,36 +280,24 @@ input[type="range"]::-webkit-slider-thumb {
     cursor: pointer;
 }
 
-/* Preset Specific Layout Buttons */
-.preset-card {
-    grid-column: span 1;
-}
-
-@media (min-width: 768px) {
-    .preset-card {
-        grid-column: span 2;
-    }
-}
-
+/* Preset Button Interfaces Layout */
 .preset-actions-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 12px;
-    flex-grow: 1;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
 }
 
 .preset-btn {
     background: linear-gradient(180deg, #334155 0%, #1e293b 100%);
     border: 1px solid #475569;
     border-radius: 8px;
-    padding: 14px;
+    padding: 12px;
     cursor: pointer;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-    text-align: center;
+    gap: 4px;
     transition: all 0.15s ease;
 }
 
@@ -300,12 +310,12 @@ input[type="range"]::-webkit-slider-thumb {
 .preset-btn .btn-title {
     color: #fbbf24;
     font-weight: bold;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
 }
 
 .preset-btn .btn-meta {
     color: #94a3b8;
-    font-size: 0.7rem;
+    font-size: 0.65rem;
 }
 
 .preset-btn.selected .btn-title {
@@ -316,36 +326,41 @@ input[type="range"]::-webkit-slider-thumb {
     color: #fde68a;
 }
 
-/* Dual Visualization Deck */
+/* RIGHT PANEL: LARGE FIELD OF VIEW EXPANDED DUAL CANVAS DECK */
 .visualizer-deck {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-@media (min-width: 768px) {
-    .visualizer-deck {
-        flex-direction: row;
-    }
+    position: sticky;
+    top: 20px; /* Sticks deck securely along screen viewports during vertical left scrolls */
 }
 
 .visualizer-block {
-    flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 10px;
-}
-
-.visualizer-section h3 {
-    font-size: 1.1rem;
-    color: #94a3b8;
-}
-
-#oscilloscope, #mandala-canvas {
-    width: 100%;
-    height: 200px;
+    gap: 8px;
     background-color: #111827;
+    padding: 15px;
     border-radius: 8px;
     border: 1px solid #334155;
+}
+
+.visualizer-block h3 {
+    font-size: 1rem;
+    color: #94a3b8;
+    border-bottom: 1px solid #1f2937;
+    padding-bottom: 4px;
+}
+
+/* Large field of view targeting for the main safe geometric mandala engine */
+.expanded-visual canvas {
+    width: 100%;
+    height: 400px; /* Maximized geometric landscape profile height targeting */
+    background-color: #111827;
+    display: block;
+}
+
+/* Secondary lower profile diagnostic tracking visualization canvas */
+.collapsed-visual canvas {
+    width: 100%;
+    height: 120px;
+    background-color: #111827;
     display: block;
 }
