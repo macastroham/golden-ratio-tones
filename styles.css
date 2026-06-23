@@ -40,7 +40,7 @@ header p {
     transition: color 0.3s ease;
 }
 
-/* Activation Overlay */
+/* Premium Activation Overlay */
 #activation-overlay {
     position: fixed;
     top: 0;
@@ -62,6 +62,7 @@ header p {
     text-align: center;
     border: 1px solid #fbbf24;
     max-width: 400px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
 }
 
 .overlay-card h1 {
@@ -72,6 +73,7 @@ header p {
 .overlay-card p {
     color: #94a3b8;
     margin-bottom: 25px;
+    line-height: 1.5;
 }
 
 .overlay-card button {
@@ -90,7 +92,7 @@ header p {
     transform: scale(0.95);
 }
 
-/* Keyboard Section Header and Actions */
+/* Keyboard Headers */
 .keyboard-header {
     display: flex;
     justify-content: space-between;
@@ -149,7 +151,6 @@ header p {
     transition: background 0.1s ease, transform 0.05s ease, border-color 0.1s ease;
 }
 
-/* Visual Active Toggle State */
 .phi-key.active {
     background: linear-gradient(180deg, #fbbf24 0%, #d97706 100%);
     color: #0d0f12;
@@ -178,6 +179,8 @@ header p {
     padding: 20px;
     border-radius: 8px;
     border: 1px solid #334155;
+    display: flex;
+    flex-direction: column;
 }
 
 .control-card h3 {
@@ -186,6 +189,13 @@ header p {
     margin-bottom: 15px;
     border-bottom: 1px solid #334155;
     padding-bottom: 5px;
+}
+
+.card-desc {
+    font-size: 0.85rem;
+    color: #94a3b8;
+    margin-bottom: 15px;
+    line-height: 1.35;
 }
 
 .control-group {
@@ -200,7 +210,6 @@ header p {
     color: #cbd5e1;
 }
 
-/* Radio Button Layouts */
 .radio-group {
     display: flex;
     flex-direction: column;
@@ -241,7 +250,65 @@ input[type="range"]::-webkit-slider-thumb {
     cursor: pointer;
 }
 
-/* Visualizer Canvas */
+/* Preset Actions Grid Layout */
+.preset-card {
+    grid-column: span 1;
+}
+
+@media (min-width: 600px) {
+    .preset-card {
+        grid-column: span 2;
+    }
+}
+
+.preset-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    flex-grow: 1;
+}
+
+.preset-btn {
+    background: linear-gradient(180deg, #334155 0%, #1e293b 100%);
+    border: 1px solid #475569;
+    border-radius: 8px;
+    padding: 14px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    text-align: center;
+    transition: all 0.15s ease;
+}
+
+.preset-btn:active, .preset-btn.selected {
+    border-color: #fbbf24;
+    background: linear-gradient(180deg, #451a03 0%, #78350f 100%);
+    box-shadow: 0 0 12px rgba(251, 191, 36, 0.2);
+}
+
+.preset-btn .btn-title {
+    color: #fbbf24;
+    font-weight: bold;
+    font-size: 0.95rem;
+}
+
+.preset-btn .btn-meta {
+    color: #94a3b8;
+    font-size: 0.7rem;
+}
+
+.preset-btn.selected .btn-title {
+    color: #ffffff;
+}
+
+.preset-btn.selected .btn-meta {
+    color: #fde68a;
+}
+
+/* Visualizer Canvas Card */
 .visualizer-section h3 {
     font-size: 1.1rem;
     color: #94a3b8;
