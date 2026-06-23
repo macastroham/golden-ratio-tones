@@ -15,6 +15,7 @@ let activeVoices = {};
 let binauralDetuneHz = 1.62; 
 let pannerLfoSpeed = 0.3; 
 let filterDepthPercent = 65;
+let photicVisualsEnabled = true;
 
 // Interaction and Tuning State Variables
 let currentTuningMode = 'spiral'; 
@@ -22,6 +23,7 @@ let currentKeyboardMode = 'toggle';
 
 // The Golden Scale Constants
 const PHI_INTERVAL_CENTS = 833.0923;
+const PHI_CONSTANT = 1.6180339887;
 
 // Fibonacci 13:8 Progression Multipliers
 const FIBONACCI_MULTIPLIERS = [
@@ -38,34 +40,34 @@ const NEURO_PRESETS = {
         detune: 10.00,
         filterDepth: 75,
         swirlSpeed: 45,
-        chords: [0, 4, 7, 11] // Structured, clear harmonic framework
+        chords: [0, 4, 7, 11]
     },
     theta: {
         name: "Theta Trance",
         tuningMode: "spiral",
-        rootFreq: 220, // Grounded octave lower root anchor
-        detune: 6.18,  // Phi * 10 dynamic theta offset target
+        rootFreq: 220, 
+        detune: 6.18,  
         filterDepth: 45,
         swirlSpeed: 25,
-        chords: [0, 3, 6, 9]  // Flowing, ambiguous dream clusters
+        chords: [0, 3, 6, 9]  
     },
     delta: {
         name: "Deep Delta",
         tuningMode: "spiral",
-        rootFreq: 110, // Sub bass anchor line
-        detune: 1.62,  // True golden ratio beat configuration
-        filterDepth: 25, // Deeply buried, dark atmosphere sub cutoff
-        swirlSpeed: 10,  // Viscous, ultra-slow landscape movement
+        rootFreq: 110, 
+        detune: 1.62,  
+        filterDepth: 25, 
+        swirlSpeed: 10,  
         chords: [0, 5, 12]
     },
     astral: {
         name: "Astral Flight",
         tuningMode: "spiral",
         rootFreq: 220,
-        detune: 4.00,  // The Delta/Theta dimensional crossover threshold
+        detune: 4.00,  
         filterDepth: 60,
-        swirlSpeed: 65,  // Fast panning cycles to build floating dissociation
-        chords: [0, 1, 5]  // Incommensurate, dense structural geometry cluster
+        swirlSpeed: 65,  
+        chords: [0, 1, 5]  
     }
 };
 
@@ -97,7 +99,9 @@ function initAudio() {
     masterGainNode.connect(analyserNode);
     analyserNode.connect(audioCtx.destination);
     
+    // Fire up both visualization engines
     drawOscilloscope();
+    drawSafeMandala();
 }
 
 function setupSpatialLFO() {
@@ -144,7 +148,6 @@ function calculateGoldenFrequency(step, root) {
     }
 }
 
-// Synchronizes sliders and radio components to mirror background computational logic state shifts
 function updateSlidersUI() {
     document.getElementById('root-freq').value = rootFrequency;
     document.getElementById('root-val').innerText = rootFrequency;
@@ -196,7 +199,6 @@ function initializeKeyboardListeners() {
         key.addEventListener('pointerdown', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            // Clear current preset selection styling on manual key intervention
             document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('selected'));
             
             if (currentKeyboardMode === 'toggle') {
@@ -224,42 +226,35 @@ function initializeKeyboardListeners() {
     });
 }
 
-// Core execution engine for deploying entrainment states cleanly
 function loadNeuroPreset(presetKey) {
     const preset = NEURO_PRESETS[presetKey];
     if (!preset) return;
 
     if (!audioCtx) initAudio();
-    clearAllTones(); // Clear old notes cleanly
+    clearAllTones(); 
 
-    // 1. Structural Logic Mappings Assignment
     currentTuningMode = preset.tuningMode;
     rootFrequency = preset.rootFreq;
     binauralDetuneHz = preset.detune;
     filterDepthPercent = preset.filterDepth;
     pannerLfoSpeed = (preset.swirlSpeed / 100) * 2.0;
 
-    // 2. Hardware Graph Parameters Intersect Updating
     updateFilterFrequency();
     if (spatialLfoNode && audioCtx) {
         spatialLfoNode.frequency.setValueAtTime(pannerLfoSpeed, audioCtx.currentTime);
     }
 
-    // 3. System Viewport State Synchronizations
     updateSlidersUI();
     updateKeyboardLabels();
 
-    // 4. Force System to Toggle Latch Mode for uninterrupted drone entrainment
     currentKeyboardMode = 'toggle';
     document.getElementById('keyboard-mode-title').innerText = "The Phi Keyboard Array (Toggle Mode)";
     document.querySelector('input[name="keyboard-mode"][value="toggle"]').checked = true;
 
-    // 5. Fire Sequential Voices Attacks Across Target Chords Mapping Matrix Arrays
     preset.chords.forEach(index => {
         voiceOn(index);
     });
 
-    // 6. Manage Selected Stylings States Across Preset Button Interfaces
     document.querySelectorAll('.preset-btn').forEach(btn => {
         if (btn.dataset.preset === presetKey) {
             btn.classList.add('selected');
@@ -345,18 +340,95 @@ function clearAllTones() {
     document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('selected'));
 }
 
+// SAFE GEOMETRIC PHOTIC ENGINE
+// Computes a mathematical breathing mandala tied smoothly to the entrainment target rate
+function drawSafeMandala() {
+    const canvas = document.getElementById('mandala-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    
+    let angleOffset = 0;
+
+    function render() {
+        requestAnimationFrame(render);
+        
+        canvas.width = canvas.clientWidth * window.devicePixelRatio;
+        canvas.height = canvas.clientHeight * window.devicePixelRatio;
+        
+        ctx.fillStyle = '#111827';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const maxRadius = Math.min(centerX, centerY) * 0.85;
+        
+        // Count active tone lines to scale the visualization brightness
+        const voiceCount = Object.keys(activeVoices).length;
+        
+        if (!photicVisualsEnabled || voiceCount === 0) {
+            // Draw an idle, dormant geometric center ring when quiet
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 1 * window.devicePixelRatio;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, maxRadius * 0.2, 0, Math.PI * 2);
+            ctx.stroke();
+            return;
+        }
+
+        // Sinusoidal speed modulator bound precisely to the chosen entrainment target (binauralDetuneHz)
+        const pulsePeriod = Date.now() * 0.001 * (binauralDetuneHz * Math.PI);
+        const expansionFactor = 0.6 + Math.sin(pulsePeriod) * 0.25; // Continuous sinusoidal size modulation
+        
+        // Advance rotation slowly to keep the visual field sliding smoothly
+        angleOffset += 0.004;
+
+        ctx.lineWidth = 1.5 * window.devicePixelRatio;
+        
+        // Generate a 13-point mathematical golden rose node layout matrix
+        for (let ring = 1; ring <= 4; ring++) {
+            const ringScale = (ring / 4) * maxRadius * expansionFactor;
+            
+            // Color grading maps between deep bronze to amber depending on chosen preset spectrum
+            const alphaValue = 0.15 + (Math.sin(pulsePeriod + ring) * 0.1);
+            ctx.strokeStyle = `rgba(251, 191, 36, ${alphaValue})`;
+            
+            ctx.beginPath();
+            for (let i = 0; i <= 13; i++) {
+                const angle = (i * (Math.PI * 2) / 13) + (angleOffset * (ring % 2 === 0 ? 1 : -1));
+                
+                // Polar to Cartesian coordinate map conversions
+                const r = ringScale * (1 + 0.15 * Math.sin(angle * PHI_CONSTANT));
+                const x = centerX + Math.cos(angle) * r;
+                const y = centerY + Math.sin(angle) * r;
+                
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.stroke();
+        }
+
+        // Central core anchor glow ring
+        ctx.fillStyle = `rgba(251, 191, 36, ${0.08 + Math.sin(pulsePeriod) * 0.04})`;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, maxRadius * 0.15 * expansionFactor, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    render();
+}
+
 function drawOscilloscope() {
     const canvas = document.getElementById('oscilloscope');
     const canvasCtx = canvas.getContext('2d');
     const bufferLength = analyserNode.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
 
-    canvas.width = canvas.clientWidth * window.devicePixelRatio;
-    canvas.height = canvas.clientHeight * window.devicePixelRatio;
-
     function render() {
         requestAnimationFrame(render);
         analyserNode.getByteTimeDomainData(dataArray);
+
+        canvas.width = canvas.clientWidth * window.devicePixelRatio;
+        canvas.height = canvas.clientHeight * window.devicePixelRatio;
 
         canvasCtx.fillStyle = '#111827';
         canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
@@ -397,14 +469,8 @@ document.getElementById('clear-btn').addEventListener('pointerdown', (e) => {
     clearAllTones();
 });
 
-// Bindings for newly mapped Preset Module trigger loops
-document.querySelectorAll('.preset-btn').forEach(btn => {
-    const handlePresetTap = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        loadNeuroPreset(btn.dataset.preset);
-    };
-    btn.addEventListener('pointerdown', handlePresetTap);
+document.getElementById('photic-toggle').addEventListener('change', (e) => {
+    photicVisualsEnabled = e.target.checked;
 });
 
 document.getElementById('root-freq').addEventListener('input', (e) => {
@@ -500,5 +566,12 @@ document.getElementById('master-volume').addEventListener('input', (e) => {
     if (masterGainNode) masterGainNode.gain.setValueAtTime(val, audioCtx.currentTime);
 });
 
-// Run layout verification pass
+document.querySelectorAll('.preset-btn').forEach(btn => {
+    btn.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        loadNeuroPreset(btn.dataset.preset);
+    });
+});
+
 updateKeyboardLabels();
