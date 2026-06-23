@@ -8,6 +8,7 @@
 </head>
 <body>
 
+    <!-- Restored Original Heavy Premium Activation Overlay -->
     <div id="activation-overlay">
         <div class="overlay-card">
             <h1>Golden 13-Tone Generator</h1>
@@ -22,6 +23,7 @@
             <p id="scale-subtitle">Mathematical audio synthesis based on the Golden Ratio interval (833.09 cents)</p>
         </header>
 
+        <!-- SECTION A: THE 13-TONE KEYBOARD -->
         <section class="keyboard-section">
             <div class="keyboard-header">
                 <h2 id="keyboard-mode-title">The Phi Keyboard Array (Toggle Mode)</h2>
@@ -44,27 +46,30 @@
             </div>
         </section>
 
+        <!-- DUAL-COLUMN WORKSPACE: LEFT FOR CONTROLS, RIGHT FOR LARGE FOV VISUALS -->
         <div class="dashboard-workspace">
             
-            <div class="workspace-panel controls-stack">
+            <!-- LEFT PANEL: THE CONTROLS ENGINE -->
+            <div class="controls-stack">
                 <div class="control-card">
                     <h3>Neurological Entrainment Presets</h3>
+                    <p class="card-desc">Instantly configure mathematical states for targeted brain wave entrainment (Headphones required).</p>
                     <div class="preset-actions-grid">
                         <button class="preset-btn" data-preset="alpha">
                             <span class="btn-title">Alpha Flow</span>
-                            <span class="btn-meta">10.0 Hz Focus</span>
+                            <span class="btn-meta">10.0 Hz Focus Bridge</span>
                         </button>
                         <button class="preset-btn" data-preset="theta">
                             <span class="btn-title">Theta Trance</span>
-                            <span class="btn-meta">6.18 Hz Dream</span>
+                            <span class="btn-meta">6.18 Hz Dream State</span>
                         </button>
                         <button class="preset-btn" data-preset="delta">
                             <span class="btn-title">Deep Delta</span>
-                            <span class="btn-meta">1.62 Hz Healing</span>
+                            <span class="btn-meta">1.62 Hz Sleep Healing</span>
                         </button>
                         <button class="preset-btn" data-preset="astral">
                             <span class="btn-title">Astral Flight</span>
-                            <span class="btn-meta">4.0 Hz Astral</span>
+                            <span class="btn-meta">4.0 Hz Dissociation</span>
                         </button>
                     </div>
                 </div>
@@ -117,7 +122,7 @@
                             </label>
                             <label class="radio-label">
                                 <input type="radio" name="keyboard-mode" value="touch">
-                                Touch Mode (Momentary)
+                                Touch Mode (Momentary Triggers)
                             </label>
                         </div>
                     </div>
@@ -126,7 +131,7 @@
                         <div class="radio-group">
                             <label class="radio-label">
                                 <input type="checkbox" id="photic-toggle" checked>
-                                Enable Safe Chromatic Mandala
+                                Enable Safe Geometry Mandala (Sync To Detune)
                             </label>
                         </div>
                     </div>
@@ -145,12 +150,13 @@
                 </div>
             </div>
 
-            <div class="workspace-panel visualizer-deck">
-                <div class="visualizer-block expanded-visual">
-                    <h3>Chromatic Photic Mandala</h3>
+            <!-- RIGHT PANEL: PRECISE EYE-LEVEL VISUALS DECK -->
+            <div class="visualizer-deck">
+                <div class="visualizer-card large-canvas-block">
+                    <h3>Acoustic Fractal Mandala (Photic Engine)</h3>
                     <canvas id="mandala-canvas"></canvas>
                 </div>
-                <div class="visualizer-block collapsed-visual">
+                <div class="visualizer-card small-canvas-block">
                     <h3>Oscilloscope Monitor</h3>
                     <canvas id="oscilloscope"></canvas>
                 </div>
