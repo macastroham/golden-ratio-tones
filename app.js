@@ -15,7 +15,6 @@ let activeVoices = {};
 let binauralDetuneHz = 1.62; 
 let pannerLfoSpeed = 0.3; 
 let filterDepthPercent = 65;
-let photicVisualsEnabled = true;
 
 // Interaction and Tuning State Variables
 let currentTuningMode = 'spiral'; 
@@ -23,13 +22,52 @@ let currentKeyboardMode = 'toggle';
 
 // The Golden Scale Constants
 const PHI_INTERVAL_CENTS = 833.0923;
-const PHI_CONSTANT = 1.6180339887;
 
 // Fibonacci 13:8 Progression Multipliers
 const FIBONACCI_MULTIPLIERS = [
     1.0000, 1.6250, 1.3164, 1.0696, 1.7381, 1.4082, 1.1441, 
     1.8592, 1.5106, 1.2274, 1.9945, 1.6205, 1.3167
 ];
+
+// Neurological Engine Configuration Blueprint Map
+const NEURO_PRESETS = {
+    alpha: {
+        name: "Alpha Flow",
+        tuningMode: "fibonacci",
+        rootFreq: 440,
+        detune: 10.00,
+        filterDepth: 75,
+        swirlSpeed: 45,
+        chords: [0, 4, 7, 11]
+    },
+    theta: {
+        name: "Theta Trance",
+        tuningMode: "spiral",
+        rootFreq: 220, 
+        detune: 6.18,  
+        filterDepth: 45,
+        swirlSpeed: 25,
+        chords: [0, 3, 6, 9]  
+    },
+    delta: {
+        name: "Deep Delta",
+        tuningMode: "spiral",
+        rootFreq: 110, 
+        detune: 1.62,  
+        filterDepth: 25, 
+        swirlSpeed: 10,  
+        chords: [0, 5, 12]
+    },
+    astral: {
+        name: "Astral Flight",
+        tuningMode: "spiral",
+        rootFreq: 220,
+        detune: 4.00,  
+        filterDepth: 60,
+        swirlSpeed: 65,  
+        chords: [0, 1, 5]  
+    }
+};
 
 // Initialize the Audio Nodes Ecosystem
 function initAudio() {
@@ -106,6 +144,31 @@ function calculateGoldenFrequency(step, root) {
     }
 }
 
+function updateSlidersUI() {
+    document.getElementById('root-freq').value = rootFrequency;
+    document.getElementById('root-val').innerText = rootFrequency;
+    
+    document.getElementById('hypnotic-detune').value = binauralDetuneHz;
+    document.getElementById('detune-val').innerText = binauralDetuneHz.toFixed(2);
+    
+    document.getElementById('space-swirl').value = Math.round((pannerLfoSpeed / 2.0) * 100);
+    document.getElementById('swirl-val').innerText = document.getElementById('space-swirl').value;
+    
+    document.getElementById('filter-cutoff').value = filterDepthPercent;
+    document.getElementById('filter-val').innerText = filterDepthPercent;
+
+    document.querySelector(`input[name="tuning-mode"][value="${currentTuningMode}"]`).checked = true;
+    
+    const subtitle = document.getElementById('scale-subtitle');
+    if (currentTuningMode === 'fibonacci') {
+        subtitle.innerText = "Mathematical audio synthesis based on the 13:8 Fibonacci Integer Proportions";
+        subtitle.style.color = "#a78bfa";
+    } else {
+        subtitle.innerText = "Mathematical audio synthesis based on the Golden Ratio interval (833.09 cents)";
+        subtitle.style.color = "#94a3b8";
+    }
+}
+
 function updateKeyboardLabels() {
     const keys = document.querySelectorAll('.phi-key');
     keys.forEach(key => {
@@ -132,6 +195,8 @@ function initializeKeyboardListeners() {
         key.addEventListener('pointerdown', (e) => {
             e.preventDefault();
             e.stopPropagation();
+            document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('selected'));
+            
             if (currentKeyboardMode === 'toggle') {
                 toggleVoice(i);
             } else {
@@ -154,6 +219,44 @@ function initializeKeyboardListeners() {
                 voiceOff(i);
             }
         });
+    });
+}
+
+function loadNeuroPreset(presetKey) {
+    const preset = NEURO_PRESETS[presetKey];
+    if (!preset) return;
+
+    if (!audioCtx) initAudio();
+    clearAllTones(); 
+
+    currentTuningMode = preset.tuningMode;
+    rootFrequency = preset.rootFreq;
+    binauralDetuneHz = preset.detune;
+    filterDepthPercent = preset.filterDepth;
+    pannerLfoSpeed = (preset.swirlSpeed / 100) * 2.0;
+
+    updateFilterFrequency();
+    if (spatialLfoNode && audioCtx) {
+        spatialLfoNode.frequency.setValueAtTime(pannerLfoSpeed, audioCtx.currentTime);
+    }
+
+    updateSlidersUI();
+    updateKeyboardLabels();
+
+    currentKeyboardMode = 'toggle';
+    document.getElementById('keyboard-mode-title').innerText = "The Phi Keyboard Array (Toggle Mode)";
+    document.querySelector('input[name="keyboard-mode"][value="toggle"]').checked = true;
+
+    preset.chords.forEach(index => {
+        voiceOn(index);
+    });
+
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+        if (btn.dataset.preset === presetKey) {
+            btn.classList.add('selected');
+        } else {
+            btn.classList.remove('selected');
+        }
     });
 }
 
@@ -230,6 +333,7 @@ function clearAllTones() {
     Object.keys(activeVoices).forEach(index => {
         voiceOff(index);
     });
+    document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('selected'));
 }
 
 function drawOscilloscope() {
@@ -287,12 +391,15 @@ document.getElementById('clear-btn').addEventListener('pointerdown', (e) => {
 document.getElementById('root-freq').addEventListener('input', (e) => {
     rootFrequency = parseFloat(e.target.value);
     document.getElementById('root-val').innerText = rootFrequency;
+    document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('selected'));
     updateKeyboardLabels(); 
 });
 
 document.querySelectorAll('input[name="tuning-mode"]').forEach(radio => {
     radio.addEventListener('change', (e) => {
         currentTuningMode = e.target.value;
+        document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('selected'));
+        
         const subtitle = document.getElementById('scale-subtitle');
         if (currentTuningMode === 'fibonacci') {
             subtitle.innerText = "Mathematical audio synthesis based on the 13:8 Fibonacci Integer Proportions";
@@ -327,6 +434,36 @@ document.querySelectorAll('input[name="keyboard-mode"]').forEach(radio => {
     });
 });
 
+document.getElementById('hypnotic-detune').addEventListener('input', (e) => {
+    binauralDetuneHz = parseFloat(e.target.value);
+    document.getElementById('detune-val').innerText = binauralDetuneHz.toFixed(2);
+    document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('selected'));
+    
+    Object.keys(activeVoices).forEach(index => {
+        const baseFreq = calculateGoldenFrequency(index, rootFrequency);
+        if (audioCtx) {
+            activeVoices[index].oscRight.frequency.setValueAtTime(baseFreq + binauralDetuneHz, audioCtx.currentTime);
+        }
+    });
+});
+
+document.getElementById('space-swirl').addEventListener('input', (e) => {
+    const intensity = parseInt(e.target.value);
+    document.getElementById('swirl-val').innerText = intensity;
+    pannerLfoSpeed = (intensity / 100) * 2.0; 
+    document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('selected'));
+    if (spatialLfoNode && audioCtx) {
+        spatialLfoNode.frequency.setValueAtTime(pannerLfoSpeed, audioCtx.currentTime);
+    }
+});
+
+document.getElementById('filter-cutoff').addEventListener('input', (e) => {
+    filterDepthPercent = parseInt(e.target.value);
+    document.getElementById('filter-val').innerText = filterDepthPercent;
+    document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('selected'));
+    updateFilterFrequency();
+});
+
 document.getElementById('warmth').addEventListener('input', (e) => {
     const val = parseInt(e.target.value);
     document.getElementById('warmth-val').innerText = val;
@@ -342,6 +479,14 @@ document.getElementById('master-volume').addEventListener('input', (e) => {
     const val = parseInt(e.target.value) / 100;
     document.getElementById('volume-val').innerText = e.target.value;
     if (masterGainNode) masterGainNode.gain.setValueAtTime(val, audioCtx.currentTime);
+});
+
+document.querySelectorAll('.preset-btn').forEach(btn => {
+    btn.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        loadNeuroPreset(btn.dataset.preset);
+    });
 });
 
 // Primary Initialization Pass
