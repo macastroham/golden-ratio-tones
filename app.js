@@ -31,550 +31,258 @@ const FIBONACCI_MULTIPLIERS = [
     1.8592, 1.5106, 1.2274, 1.9945, 1.6205, 1.3167
 ];
 
-// Neurological Engine Configuration Blueprint Map
 const NEURO_PRESETS = {
-    alpha: {
-        name: "Alpha Flow",
-        tuningMode: "fibonacci",
-        rootFreq: 440,
-        detune: 10.00,
-        filterDepth: 75,
-        swirlSpeed: 45,
-        chords: [0, 4, 7, 11]
-    },
-    theta: {
-        name: "Theta Trance",
-        tuningMode: "spiral",
-        rootFreq: 220, 
-        detune: 6.18,  
-        filterDepth: 45,
-        swirlSpeed: 25,
-        chords: [0, 3, 6, 9]  
-    },
-    delta: {
-        name: "Deep Delta",
-        tuningMode: "spiral",
-        rootFreq: 110, 
-        detune: 1.62,  
-        filterDepth: 25, 
-        swirlSpeed: 10,  
-        chords: [0, 5, 12]
-    },
-    astral: {
-        name: "Astral Flight",
-        tuningMode: "spiral",
-        rootFreq: 220,
-        detune: 4.00,  
-        filterDepth: 60,
-        swirlSpeed: 65,  
-        chords: [0, 1, 5]  
-    }
+    alpha: { tuningMode: "fibonacci", rootFreq: 440, detune: 10.00, filterDepth: 75, swirlSpeed: 45, chords: [0, 4, 7, 11] },
+    theta: { tuningMode: "spiral", rootFreq: 220, detune: 6.18, filterDepth: 45, swirlSpeed: 25, chords: [0, 3, 6, 9] },
+    delta: { tuningMode: "spiral", rootFreq: 110, detune: 1.62, filterDepth: 25, swirlSpeed: 10, chords: [0, 5, 12] },
+    astral: { tuningMode: "spiral", rootFreq: 220, detune: 4.00, filterDepth: 60, swirlSpeed: 65, chords: [0, 1, 5] }
 };
 
-// Initialize the Hypnotic Audio Ecosystem
 function initAudio() {
     if (audioCtx) return; 
-    
     const AudioContextClass = window.AudioContext || window.webkitAudioContext;
     audioCtx = new AudioContextClass();
-    
     masterGainNode = audioCtx.createGain();
     masterGainNode.gain.setValueAtTime(0.7, audioCtx.currentTime);
-
     analyserNode = audioCtx.createAnalyser();
     analyserNode.fftSize = 2048;
-
     spaceFilterNode = audioCtx.createBiquadFilter();
     spaceFilterNode.type = 'lowpass';
     updateFilterFrequency();
     spaceFilterNode.Q.setValueAtTime(4.0, audioCtx.currentTime);
-
     distortionNode = audioCtx.createWaveShaper();
     updateWaveShaperCurve(40);
-
     setupSpatialLFO();
-
     distortionNode.connect(spaceFilterNode);
     spaceFilterNode.connect(masterGainNode);
     masterGainNode.connect(analyserNode);
     analyserNode.connect(audioCtx.destination);
-    
     drawOscilloscope();
     drawSafeMandala();
 }
 
 function setupSpatialLFO() {
-    if (!audioCtx) return;
-    
     spatialLfoNode = audioCtx.createOscillator();
-    spatialLfoNode.type = 'sine';
     spatialLfoNode.frequency.setValueAtTime(pannerLfoSpeed, audioCtx.currentTime);
-    
     const lfoGain = audioCtx.createGain();
     lfoGain.gain.setValueAtTime(400, audioCtx.currentTime); 
-    
     spatialLfoNode.connect(lfoGain);
     lfoGain.connect(spaceFilterNode.frequency);
     spatialLfoNode.start();
 }
 
 function updateFilterFrequency() {
-    if (!spaceFilterNode || !audioCtx) return;
+    if (!spaceFilterNode) return;
     const targetCutoff = 300 + (filterDepthPercent / 100) * 4700;
     spaceFilterNode.frequency.setValueAtTime(targetCutoff, audioCtx.currentTime);
 }
 
 function updateWaveShaperCurve(amount) {
     if (!distortionNode) return;
-    const k = typeof amount === 'number' ? amount : 40;
-    const n_samples = 44100;
-    const curve = new Float32Array(n_samples);
-    const deg = Math.PI / 180;
-    
+    const k = amount, n_samples = 44100, curve = new Float32Array(n_samples);
     for (let i = 0; i < n_samples; ++i) {
         const x = (i * 2) / n_samples - 1;
-        curve[i] = (3 + k) * x * 20 * deg / (Math.PI + k * Math.abs(x));
+        curve[i] = (3 + k) * x * 20 * (Math.PI / 180) / (Math.PI + k * Math.abs(x));
     }
     distortionNode.value = curve;
 }
 
 function calculateGoldenFrequency(step, root) {
-    if (currentTuningMode === 'fibonacci') {
-        return root * FIBONACCI_MULTIPLIERS[step];
-    } else {
-        const totalCents = (step * PHI_INTERVAL_CENTS) % 1200;
-        return root * Math.pow(2, totalCents / 1200);
-    }
-}
-
-function updateSlidersUI() {
-    document.getElementById('root-freq').value = rootFrequency;
-    document.getElementById('root-val').innerText = rootFrequency;
-    
-    document.getElementById('hypnotic-detune').value = binauralDetuneHz;
-    document.getElementById('detune-val').innerText = binauralDetuneHz.toFixed(2);
-    
-    document.getElementById('space-swirl').value = Math.round((pannerLfoSpeed / 2.0) * 100);
-    document.getElementById('swirl-val').innerText = document.getElementById('space-swirl').value;
-    
-    document.getElementById('filter-cutoff').value = filterDepthPercent;
-    document.getElementById('filter-val').innerText = filterDepthPercent;
-
-    document.querySelector(`input[name="tuning-mode"][value="${currentTuningMode}"]`).checked = true;
-    
-    const subtitle = document.getElementById('scale-subtitle');
-    if (currentTuningMode === 'fibonacci') {
-        subtitle.innerText = "Mathematical audio synthesis based on the 13:8 Fibonacci Integer Proportions";
-        subtitle.style.color = "#a78bfa";
-    } else {
-        subtitle.innerText = "Mathematical audio synthesis based on the Golden Ratio interval (833.09 cents)";
-        subtitle.style.color = "#94a3b8";
-    }
+    if (currentTuningMode === 'fibonacci') return root * FIBONACCI_MULTIPLIERS[step];
+    return root * Math.pow(2, ((step * PHI_INTERVAL_CENTS) % 1200) / 1200);
 }
 
 function updateKeyboardLabels() {
-    const keys = document.querySelectorAll('.phi-key');
-    keys.forEach(key => {
+    document.querySelectorAll('.phi-key').forEach(key => {
         const i = parseInt(key.dataset.index);
-        const currentFreq = calculateGoldenFrequency(i, rootFrequency).toFixed(1);
-        const labelSpan = key.querySelector('.freq-label');
-        if (labelSpan) {
-            labelSpan.innerText = `${currentFreq}Hz`;
-        }
-        
-        if (activeVoices[i]) {
-            key.classList.add('active');
-        } else {
-            key.classList.remove('active');
-        }
+        key.querySelector('.freq-label').innerText = `${calculateGoldenFrequency(i, rootFrequency).toFixed(1)}Hz`;
+        activeVoices[i] ? key.classList.add('active') : key.classList.remove('active');
     });
 }
 
 function initializeKeyboardListeners() {
-    const keys = document.querySelectorAll('.phi-key');
-    keys.forEach(key => {
+    document.querySelectorAll('.phi-key').forEach(key => {
         const i = parseInt(key.dataset.index);
-
         key.addEventListener('pointerdown', (e) => {
             e.preventDefault();
-            e.stopPropagation();
             document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('selected'));
-            
-            if (currentKeyboardMode === 'toggle') {
-                toggleVoice(i);
-            } else {
-                voiceOn(i);
-            }
+            currentKeyboardMode === 'toggle' ? toggleVoice(i) : voiceOn(i);
         });
-
-        key.addEventListener('pointerup', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            if (currentKeyboardMode === 'touch') {
-                voiceOff(i);
-            }
-        });
-
-        key.addEventListener('pointerleave', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            if (currentKeyboardMode === 'touch') {
-                voiceOff(i);
-            }
-        });
+        key.addEventListener('pointerup', () => { if(currentKeyboardMode === 'touch') voiceOff(i); });
+        key.addEventListener('pointerleave', () => { if(currentKeyboardMode === 'touch') voiceOff(i); });
     });
 }
 
 function loadNeuroPreset(presetKey) {
     const preset = NEURO_PRESETS[presetKey];
     if (!preset) return;
-
     if (!audioCtx) initAudio();
     clearAllTones(); 
-
     currentTuningMode = preset.tuningMode;
     rootFrequency = preset.rootFreq;
     binauralDetuneHz = preset.detune;
     filterDepthPercent = preset.filterDepth;
     pannerLfoSpeed = (preset.swirlSpeed / 100) * 2.0;
-
     updateFilterFrequency();
-    if (spatialLfoNode && audioCtx) {
-        spatialLfoNode.frequency.setValueAtTime(pannerLfoSpeed, audioCtx.currentTime);
-    }
-
-    updateSlidersUI();
-    updateKeyboardLabels();
+    if (spatialLfoNode) spatialLfoNode.frequency.setValueAtTime(pannerLfoSpeed, audioCtx.currentTime);
+    
+    // Update UI
+    document.getElementById('root-freq').value = rootFrequency;
+    document.getElementById('root-val').innerText = rootFrequency;
+    document.getElementById('hypnotic-detune').value = binauralDetuneHz;
+    document.getElementById('detune-val').innerText = binauralDetuneHz.toFixed(2);
+    document.querySelector(`input[name="tuning-mode"][value="${currentTuningMode}"]`).checked = true;
 
     currentKeyboardMode = 'toggle';
-    document.getElementById('keyboard-mode-title').innerText = "The Phi Keyboard Array (Toggle Mode)";
     document.querySelector('input[name="keyboard-mode"][value="toggle"]').checked = true;
-
-    preset.chords.forEach(index => {
-        voiceOn(index);
-    });
-
-    document.querySelectorAll('.preset-btn').forEach(btn => {
-        if (btn.dataset.preset === presetKey) {
-            btn.classList.add('selected');
-        } else {
-            btn.classList.remove('selected');
-        }
-    });
+    preset.chords.forEach(index => voiceOn(index));
+    document.querySelectorAll('.preset-btn').forEach(btn => btn.dataset.preset === presetKey ? btn.classList.add('selected') : btn.classList.remove('selected'));
+    updateKeyboardLabels();
 }
 
 function toggleVoice(index) {
     if (!audioCtx) initAudio();
-    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-
-    if (activeVoices[index]) {
-        voiceOff(index);
-    } else {
-        voiceOn(index);
-    }
+    activeVoices[index] ? voiceOff(index) : voiceOn(index);
 }
 
 function voiceOn(index) {
-    if (!audioCtx) initAudio();
-    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
     if (activeVoices[index]) return;
-
     const baseFreq = calculateGoldenFrequency(index, rootFrequency);
+    const oscL = audioCtx.createOscillator(), oscR = audioCtx.createOscillator();
+    const panL = audioCtx.createStereoPanner(), panR = audioCtx.createStereoPanner();
+    const voiceG = audioCtx.createGain();
     
-    const oscLeft = audioCtx.createOscillator();
-    oscLeft.type = 'sine';
-    oscLeft.frequency.setValueAtTime(baseFreq, audioCtx.currentTime);
-    
-    const pannerLeft = audioCtx.createStereoPanner();
-    pannerLeft.pan.setValueAtTime(-1.0, audioCtx.currentTime); 
+    oscL.frequency.value = baseFreq;
+    oscR.frequency.value = baseFreq + binauralDetuneHz;
+    panL.pan.value = -1; panR.pan.value = 1;
+    voiceG.gain.setValueAtTime(0, audioCtx.currentTime);
+    voiceG.gain.linearRampToValueAtTime(0.18, audioCtx.currentTime + 0.5);
 
-    const oscRight = audioCtx.createOscillator();
-    oscRight.type = 'sine';
-    oscRight.frequency.setValueAtTime(baseFreq + binauralDetuneHz, audioCtx.currentTime);
-    
-    const pannerRight = audioCtx.createStereoPanner();
-    pannerRight.pan.setValueAtTime(1.0, audioCtx.currentTime); 
-
-    const voiceGain = audioCtx.createGain();
-    voiceGain.gain.setValueAtTime(0, audioCtx.currentTime);
-    voiceGain.gain.linearRampToValueAtTime(0.18, audioCtx.currentTime + 0.5);
-
-    oscLeft.connect(pannerLeft);
-    pannerLeft.connect(voiceGain);
-
-    oscRight.connect(pannerRight);
-    pannerRight.connect(voiceGain);
-
-    voiceGain.connect(distortionNode);
-    
-    oscLeft.start();
-    oscRight.start();
-
-    activeVoices[index] = { oscLeft, oscRight, voiceGain };
-    
-    const keyElement = document.querySelector(`.phi-key[data-index="${index}"]`);
-    if (keyElement) keyElement.classList.add('active');
+    oscL.connect(panL); panL.connect(voiceG);
+    oscR.connect(panR); panR.connect(voiceG);
+    voiceG.connect(distortionNode);
+    oscL.start(); oscR.start();
+    activeVoices[index] = { oscL, oscR, voiceG };
+    updateKeyboardLabels();
 }
 
 function voiceOff(index) {
-    const voice = activeVoices[index];
-    if (!voice) return;
-
-    const keyElement = document.querySelector(`.phi-key[data-index="${index}"]`);
-    if (keyElement) keyElement.classList.remove('active');
-
+    const v = activeVoices[index]; if (!v) return;
     const now = audioCtx.currentTime;
-    voice.voiceGain.gain.setValueAtTime(voice.voiceGain.gain.value, now);
-    voice.voiceGain.gain.exponentialRampToValueAtTime(0.0001, now + releaseTime);
-
-    voice.oscLeft.stop(now + releaseTime);
-    voice.oscRight.stop(now + releaseTime);
+    v.voiceG.gain.setValueAtTime(v.voiceG.gain.value, now);
+    v.voiceG.gain.exponentialRampToValueAtTime(0.0001, now + releaseTime);
+    v.oscL.stop(now + releaseTime); v.oscR.stop(now + releaseTime);
     delete activeVoices[index];
+    updateKeyboardLabels();
 }
 
 function clearAllTones() {
-    Object.keys(activeVoices).forEach(index => {
-        voiceOff(index);
-    });
+    Object.keys(activeVoices).forEach(i => voiceOff(i));
     document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('selected'));
 }
 
-// ENVELOPING CHROMATIC PHOTIC MANDALA ENGINE
+// THE NEW MANDALA ENGINE
 function drawSafeMandala() {
-    const canvas = document.getElementById('mandala-canvas');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    
-    let angleOffset = 0;
-    let baseHue = 40; // Initializing warm golden hue anchor
-
+    const canvas = document.getElementById('mandala-canvas'), ctx = canvas.getContext('2d');
+    let angleOffset = 0, baseHue = 0;
     function render() {
         requestAnimationFrame(render);
-        
         canvas.width = canvas.clientWidth * window.devicePixelRatio;
         canvas.height = canvas.clientHeight * window.devicePixelRatio;
         
-        // ALPHA-BLENDED MOTION TRAILS: Instead of resetting clean, paint a semi-transparent dark layer.
-        // This generates a liquid, hypnotic "afterglow tracking" effect across vector sweeps.
-        ctx.fillStyle = 'rgba(17, 24, 39, 0.06)';
+        // Liquid Motion Trails
+        ctx.fillStyle = 'rgba(13, 15, 18, 0.08)';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
-        const centerX = canvas.width / 2;
-        const centerY = canvas.height / 2;
-        const maxRadius = Math.min(centerX, centerY) * 0.85;
-        
         const voiceCount = Object.keys(activeVoices).length;
-        
-        if (!photicVisualsEnabled || voiceCount === 0) {
-            ctx.strokeStyle = '#334155';
-            ctx.lineWidth = 1 * window.devicePixelRatio;
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, maxRadius * 0.2, 0, Math.PI * 2);
-            ctx.stroke();
-            return;
-        }
+        if (!photicVisualsEnabled || voiceCount === 0) return;
 
-        // Compute entrainment timing pacing context values
-        const pulsePeriod = Date.now() * 0.001 * (binauralDetuneHz * Math.PI);
-        
-        // Cycle the fundamental background hue anchor slowly across time scales
-        baseHue = (baseHue + 0.05) % 360;
+        const centerX = canvas.width / 2, centerY = canvas.height / 2, maxR = Math.min(centerX, centerY) * 0.9;
+        const pulse = Date.now() * 0.001 * (binauralDetuneHz * Math.PI);
+        baseHue = (baseHue + 0.1) % 360;
         angleOffset += 0.003;
 
-        // Draw 6 concentric interwoven geometric rings for immersive spatial depth
-        for (let ring = 1; ring <= 6; ring++) {
-            // Alternating expand/contract behaviors generates fluid visual moiré wave interference patterns
-            const direction = ring % 2 === 0 ? 1 : -1;
-            const expansionFactor = 0.6 + Math.sin(pulsePeriod + (ring * 0.4) * direction) * 0.2;
-            const ringScale = (ring / 6) * maxRadius * expansionFactor;
+        for (let ring = 1; ring <= 8; ring++) { // 8 Rings for richness
+            const dir = ring % 2 === 0 ? 1 : -1;
+            const expand = 0.6 + Math.sin(pulse + ring * 0.5) * 0.2;
+            const rScale = (ring / 8) * maxR * expand;
+            const hue = (baseHue + (ring * 137.5)) % 360;
             
-            // CHROMATIC DISPERSION: Offset the hue of each ring using golden angles
-            const currentHue = Math.round((baseHue + (ring * 137.5)) % 360);
-            const alphaValue = 0.12 + (Math.sin(pulsePeriod + ring) * 0.06);
-            
-            ctx.strokeStyle = `hsla(${currentHue}, 85%, 60%, ${alphaValue})`;
-            ctx.lineWidth = (2.0 - (ring * 0.2)) * window.devicePixelRatio;
-            
+            ctx.strokeStyle = `hsla(${hue}, 80%, 60%, ${0.15 + (Math.sin(pulse + ring) * 0.05)})`;
+            ctx.lineWidth = (2.5 - (ring * 0.2)) * window.devicePixelRatio;
             ctx.beginPath();
-            // Generate 13 distinct geometric vertices per ring node pass
             for (let i = 0; i <= 13; i++) {
-                const angle = (i * (Math.PI * 2) / 13) + (angleOffset * direction * (1 + ring * 0.1));
-                const r = ringScale * (1 + 0.12 * Math.sin(angle * PHI_CONSTANT));
-                const x = centerX + Math.cos(angle) * r;
-                const y = centerY + Math.sin(angle) * r;
-                
-                if (i === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
+                const a = (i * (Math.PI * 2) / 13) + (angleOffset * dir * (1 + ring * 0.1));
+                const r = rScale * (1 + 0.15 * Math.sin(a * PHI_CONSTANT));
+                const x = centerX + Math.cos(a) * r, y = centerY + Math.sin(a) * r;
+                i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
             }
-            ctx.closePath();
-            ctx.stroke();
+            ctx.closePath(); ctx.stroke();
         }
-
-        // Expansive center core breathing aura
-        const coreHue = Math.round(baseHue % 360);
-        ctx.fillStyle = `hsla(${coreHue}, 80%, 55%, ${0.04 + Math.sin(pulsePeriod) * 0.02})`;
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, maxRadius * 0.25 * (0.6 + Math.sin(pulsePeriod) * 0.15), 0, Math.PI * 2);
-        ctx.fill();
     }
     render();
 }
 
 function drawOscilloscope() {
-    const canvas = document.getElementById('oscilloscope');
-    const canvasCtx = canvas.getContext('2d');
-    const bufferLength = analyserNode.frequencyBinCount;
-    const dataArray = new Uint8Array(bufferLength);
-
+    const canvas = document.getElementById('oscilloscope'), ctx = canvas.getContext('2d');
+    const buffer = analyserNode.frequencyBinCount, data = new Uint8Array(buffer);
     function render() {
         requestAnimationFrame(render);
-        analyserNode.getByteTimeDomainData(dataArray);
-
+        analyserNode.getByteTimeDomainData(data);
         canvas.width = canvas.clientWidth * window.devicePixelRatio;
         canvas.height = canvas.clientHeight * window.devicePixelRatio;
-
-        canvasCtx.fillStyle = '#111827';
-        canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
-        canvasCtx.lineWidth = 2 * window.devicePixelRatio;
-        canvasCtx.strokeStyle = '#fbbf24';
-        canvasCtx.beginPath();
-
-        const sliceWidth = canvas.width / bufferLength;
-        let x = 0;
-
-        for (let i = 0; i < bufferLength; i++) {
-            const v = dataArray[i] / 128.0;
-            const y = (v * canvas.height) / 2;
-
-            if (i === 0) canvasCtx.moveTo(x, y);
-            else canvasCtx.lineTo(x, y);
-            x += sliceWidth;
+        ctx.fillStyle = '#111827'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.lineWidth = 2 * window.devicePixelRatio; ctx.strokeStyle = '#fbbf24';
+        ctx.beginPath();
+        const slice = canvas.width / buffer; let x = 0;
+        for (let i = 0; i < buffer; i++) {
+            const v = data[i] / 128.0, y = (v * canvas.height) / 2;
+            i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); x += slice;
         }
-
-        canvasCtx.lineTo(canvas.width, canvas.height / 2);
-        canvasCtx.stroke();
+        ctx.lineTo(canvas.width, canvas.height / 2); ctx.stroke();
     }
     render();
 }
 
-// DOM Event Bindings
+// Binders
 document.getElementById('activation-overlay').addEventListener('pointerdown', (e) => {
-    e.preventDefault();
-    initAudio();
-    initializeKeyboardListeners();
-    document.getElementById('activation-overlay').style.opacity = '0';
-    setTimeout(() => document.getElementById('activation-overlay').style.display = 'none', 500);
+    e.preventDefault(); initAudio(); initializeKeyboardListeners();
+    document.getElementById('activation-overlay').style.display = 'none';
 });
-
-document.getElementById('clear-btn').addEventListener('pointerdown', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    clearAllTones();
-});
-
-document.getElementById('photic-toggle').addEventListener('change', (e) => {
-    photicVisualsEnabled = e.target.checked;
-});
-
+document.getElementById('clear-btn').addEventListener('pointerdown', clearAllTones);
+document.getElementById('photic-toggle').addEventListener('change', (e) => photicVisualsEnabled = e.target.checked);
+document.querySelectorAll('.preset-btn').forEach(btn => btn.addEventListener('pointerdown', () => loadNeuroPreset(btn.dataset.preset)));
 document.getElementById('root-freq').addEventListener('input', (e) => {
     rootFrequency = parseFloat(e.target.value);
     document.getElementById('root-val').innerText = rootFrequency;
-    document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('selected'));
-    updateKeyboardLabels(); 
+    updateKeyboardLabels();
 });
-
-document.querySelectorAll('input[name="tuning-mode"]').forEach(radio => {
-    radio.addEventListener('change', (e) => {
-        currentTuningMode = e.target.value;
-        document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('selected'));
-        
-        const subtitle = document.getElementById('scale-subtitle');
-        if (currentTuningMode === 'fibonacci') {
-            subtitle.innerText = "Mathematical audio synthesis based on the 13:8 Fibonacci Integer Proportions";
-            subtitle.style.color = "#a78bfa";
-        } else {
-            subtitle.innerText = "Mathematical audio synthesis based on the Golden Ratio interval (833.09 cents)";
-            subtitle.style.color = "#94a3b8";
-        }
-        
-        Object.keys(activeVoices).forEach(index => {
-            const targetFreq = calculateGoldenFrequency(index, rootFrequency);
-            if (audioCtx) {
-                activeVoices[index].oscLeft.frequency.setValueAtTime(targetFreq, audioCtx.currentTime);
-                activeVoices[index].oscRight.frequency.setValueAtTime(targetFreq + binauralDetuneHz, audioCtx.currentTime);
-            }
-        });
-        updateKeyboardLabels(); 
-    });
-});
-
-document.querySelectorAll('input[name="keyboard-mode"]').forEach(radio => {
-    radio.addEventListener('change', (e) => {
-        currentKeyboardMode = e.target.value;
-        const titleElement = document.getElementById('keyboard-mode-title');
-        if (currentKeyboardMode === 'touch') {
-            titleElement.innerText = "The Phi Keyboard Array (Touch Mode)";
-            clearAllTones(); 
-        } else {
-            titleElement.innerText = "The Phi Keyboard Array (Toggle Mode)";
-        }
-        updateKeyboardLabels();
-    });
-});
-
 document.getElementById('hypnotic-detune').addEventListener('input', (e) => {
     binauralDetuneHz = parseFloat(e.target.value);
     document.getElementById('detune-val').innerText = binauralDetuneHz.toFixed(2);
-    document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('selected'));
-    
-    Object.keys(activeVoices).forEach(index => {
-        const baseFreq = calculateGoldenFrequency(index, rootFrequency);
-        if (audioCtx) {
-            activeVoices[index].oscRight.frequency.setValueAtTime(baseFreq + binauralDetuneHz, audioCtx.currentTime);
-        }
-    });
 });
-
 document.getElementById('space-swirl').addEventListener('input', (e) => {
-    const intensity = parseInt(e.target.value);
-    document.getElementById('swirl-val').innerText = intensity;
-    pannerLfoSpeed = (intensity / 100) * 2.0; 
-    document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('selected'));
-    if (spatialLfoNode && audioCtx) {
-        spatialLfoNode.frequency.setValueAtTime(pannerLfoSpeed, audioCtx.currentTime);
-    }
+    pannerLfoSpeed = (parseInt(e.target.value) / 100) * 2.0;
+    if (spatialLfoNode) spatialLfoNode.frequency.setValueAtTime(pannerLfoSpeed, audioCtx.currentTime);
+    document.getElementById('swirl-val').innerText = e.target.value;
 });
-
 document.getElementById('filter-cutoff').addEventListener('input', (e) => {
     filterDepthPercent = parseInt(e.target.value);
     document.getElementById('filter-val').innerText = filterDepthPercent;
-    document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('selected'));
     updateFilterFrequency();
 });
-
 document.getElementById('warmth').addEventListener('input', (e) => {
-    const val = parseInt(e.target.value);
-    document.getElementById('warmth-val').innerText = val;
-    updateWaveShaperCurve(val);
+    updateWaveShaperCurve(parseInt(e.target.value));
+    document.getElementById('warmth-val').innerText = e.target.value;
 });
-
 document.getElementById('release').addEventListener('input', (e) => {
     releaseTime = parseFloat(e.target.value);
     document.getElementById('release-val').innerText = releaseTime.toFixed(1);
 });
-
 document.getElementById('master-volume').addEventListener('input', (e) => {
-    const val = parseInt(e.target.value) / 100;
+    const v = parseInt(e.target.value) / 100;
+    if (masterGainNode) masterGainNode.gain.setValueAtTime(v, audioCtx.currentTime);
     document.getElementById('volume-val').innerText = e.target.value;
-    if (masterGainNode) masterGainNode.gain.setValueAtTime(val, audioCtx.currentTime);
-});
-
-document.querySelectorAll('.preset-btn').forEach(btn => {
-    btn.addEventListener('pointerdown', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        loadNeuroPreset(btn.dataset.preset);
-    });
 });
 
 updateKeyboardLabels();
