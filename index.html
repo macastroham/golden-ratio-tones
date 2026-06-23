@@ -45,11 +45,35 @@
         </section>
 
         <section class="controls-grid">
+            
+            <div class="control-card preset-card">
+                <h3>Neurological Entrainment Presets</h3>
+                <p class="card-desc">Instantly configure mathematical states for targeted brain wave entrainment (Headphones required).</p>
+                <div class="preset-actions-grid">
+                    <button class="preset-btn" data-preset="alpha">
+                        <span class="btn-title">Alpha Flow</span>
+                        <span class="btn-meta">10.0 Hz Focus Bridge</span>
+                    </button>
+                    <button class="preset-btn" data-preset="theta">
+                        <span class="btn-title">Theta Trance</span>
+                        <span class="btn-meta">6.18 Hz Dream State</span>
+                    </button>
+                    <button class="preset-btn" data-preset="delta">
+                        <span class="btn-title">Deep Delta</span>
+                        <span class="btn-meta">1.62 Hz Sleep Healing</span>
+                    </button>
+                    <button class="preset-btn" data-preset="astral">
+                        <span class="btn-title">Astral Flight</span>
+                        <span class="btn-meta">4.0 Hz Dissociation</span>
+                    </button>
+                </div>
+            </div>
+
             <div class="control-card">
-                <h3>Scale Controls</h3>
+                <h3>Scale & Engine Controls</h3>
                 <div class="control-group">
                     <label for="root-freq">Root Frequency (f0): <span id="root-val">440</span> Hz</label>
-                    <input type="range" id="root-freq" min="220" max="880" step="1" value="440">
+                    <input type="range" id="root-freq" min="110" max="880" step="1" value="440">
                 </div>
                 <div class="control-group">
                     <label>Mathematical Tuning Architecture</label>
@@ -63,6 +87,22 @@
                             13:8 Fibonacci Integer Scale
                         </label>
                     </div>
+                </div>
+            </div>
+
+            <div class="control-card">
+                <h3>Hypnotic & Trance Modulation</h3>
+                <div class="control-group">
+                    <label for="hypnotic-detune">Entrainment Detune (Binaural Beats): <span id="detune-val">1.62</span> Hz</label>
+                    <input type="range" id="hypnotic-detune" min="0.0" max="15.0" step="0.05" value="1.62">
+                </div>
+                <div class="control-group">
+                    <label for="space-swirl">Spatial Panning Speed (LFO): <span id="swirl-val">30</span>%</label>
+                    <input type="range" id="space-swirl" min="0" max="100" step="1" value="30">
+                </div>
+                <div class="control-group">
+                    <label for="filter-cutoff">Resonant Filter Depth: <span id="filter-val">65</span>%</label>
+                    <input type="range" id="filter-cutoff" min="10" max="100" step="1" value="65">
                 </div>
             </div>
 
@@ -82,16 +122,12 @@
                     </div>
                 </div>
                 <div class="control-group">
-                    <label for="release">Envelope Release Time: <span id="release-val">2.5</span>s</label>
-                    <input type="range" id="release" min="0.1" max="8.0" step="0.1" value="2.5">
-                </div>
-            </div>
-
-            <div class="control-card">
-                <h3>Acoustic Warmth & Master Mix</h3>
-                <div class="control-group">
                     <label for="warmth">Saturation (Tanh Distortion): <span id="warmth-val">40</span>%</label>
                     <input type="range" id="warmth" min="0" max="100" step="1" value="40">
+                </div>
+                <div class="control-group">
+                    <label for="release">Envelope Release Time: <span id="release-val">4.5</span>s</label>
+                    <input type="range" id="release" min="0.1" max="8.0" step="0.1" value="4.5">
                 </div>
                 <div class="control-group">
                     <label for="master-volume">Master Volume: <span id="volume-val">70</span>%</label>
@@ -101,7 +137,7 @@
         </section>
 
         <section class="visualizer-section">
-            <h3>Acoustic Fractal Waveform</h3>
+            <h3>Oscilloscope Waveform Monitor</h3>
             <canvas id="oscilloscope"></canvas>
         </section>
     </main>
