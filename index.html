@@ -8,6 +8,7 @@
 </head>
 <body>
 
+    <!-- iOS/Browser Safety Activation Overlay -->
     <div id="activation-overlay">
         <div class="overlay-card">
             <h1>Golden 13-Tone Generator</h1>
@@ -22,6 +23,7 @@
             <p id="scale-subtitle">Mathematical audio synthesis based on the Golden Ratio interval (833.09 cents)</p>
         </header>
 
+        <!-- SECTION A: THE 13-TONE KEYBOARD -->
         <section class="keyboard-section">
             <div class="keyboard-header">
                 <h2 id="keyboard-mode-title">The Phi Keyboard Array (Toggle Mode)</h2>
@@ -44,6 +46,7 @@
             </div>
         </section>
 
+        <!-- SECTION B: DSP, MODULATION & PRESETS -->
         <section class="controls-grid">
             
             <div class="control-card preset-card">
@@ -107,7 +110,7 @@
             </div>
 
             <div class="control-card">
-                <h3>Interaction & Mix Settings</h3>
+                <h3>Interaction, Mix & Photic Settings</h3>
                 <div class="control-group">
                     <label>Key Trigger Behavior</label>
                     <div class="radio-group">
@@ -118,6 +121,15 @@
                         <label class="radio-label">
                             <input type="radio" name="keyboard-mode" value="touch">
                             Touch Mode (Momentary Triggers)
+                        </label>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>Visual Photic Guidance</label>
+                    <div class="radio-group">
+                        <label class="radio-label">
+                            <input type="checkbox" id="photic-toggle" checked>
+                            Enable Safe Geometry Mandala (Sync To Detune)
                         </label>
                     </div>
                 </div>
@@ -136,9 +148,18 @@
             </div>
         </section>
 
+        <!-- SECTION C: DUAL VISUALIZATION DECK -->
         <section class="visualizer-section">
-            <h3>Acoustic Fractal Waveform</h3>
-            <canvas id="oscilloscope"></canvas>
+            <div class="visualizer-deck">
+                <div class="visualizer-block">
+                    <h3>Acoustic Fractal Mandala (Photic Engine)</h3>
+                    <canvas id="mandala-canvas"></canvas>
+                </div>
+                <div class="visualizer-block">
+                    <h3>Oscilloscope Monitor</h3>
+                    <canvas id="oscilloscope"></canvas>
+                </div>
+            </div>
         </section>
     </main>
 
