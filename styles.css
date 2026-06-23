@@ -209,6 +209,14 @@ header p {
     color: #cbd5e1;
 }
 
+/* Checkbox Styling Integration */
+input[type="checkbox"] {
+    accent-color: #fbbf24;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
 /* Radio Button Layouts */
 .radio-group {
     display: flex;
@@ -257,7 +265,7 @@ input[type="range"]::-webkit-slider-thumb {
 
 @media (min-width: 768px) {
     .preset-card {
-        grid-column: span 2; /* Stretch the preset block cleanly across dashboard columns */
+        grid-column: span 2;
     }
 }
 
@@ -308,16 +316,34 @@ input[type="range"]::-webkit-slider-thumb {
     color: #fde68a;
 }
 
-/* Visualizer Canvas */
+/* Dual Visualization Deck */
+.visualizer-deck {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+@media (min-width: 768px) {
+    .visualizer-deck {
+        flex-direction: row;
+    }
+}
+
+.visualizer-block {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
 .visualizer-section h3 {
     font-size: 1.1rem;
     color: #94a3b8;
-    margin-bottom: 10px;
 }
 
-#oscilloscope {
+#oscilloscope, #mandala-canvas {
     width: 100%;
-    height: 150px;
+    height: 200px;
     background-color: #111827;
     border-radius: 8px;
     border: 1px solid #334155;
