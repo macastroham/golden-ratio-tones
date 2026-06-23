@@ -99,7 +99,6 @@ function initAudio() {
     masterGainNode.connect(analyserNode);
     analyserNode.connect(audioCtx.destination);
     
-    // Fire up both visualization engines
     drawOscilloscope();
     drawSafeMandala();
 }
@@ -119,6 +118,7 @@ function setupSpatialLFO() {
     spatialLfoNode.start();
 }
 
+// Map filter range calculations safely
 function updateFilterFrequency() {
     if (!spaceFilterNode || !audioCtx) return;
     const targetCutoff = 300 + (filterDepthPercent / 100) * 4700;
@@ -333,6 +333,7 @@ function voiceOff(index) {
     delete activeVoices[index];
 }
 
+// Clear Button
 function clearAllTones() {
     Object.keys(activeVoices).forEach(index => {
         voiceOff(index);
@@ -341,7 +342,6 @@ function clearAllTones() {
 }
 
 // SAFE GEOMETRIC PHOTIC ENGINE
-// Computes a mathematical breathing mandala tied smoothly to the entrainment target rate
 function drawSafeMandala() {
     const canvas = document.getElementById('mandala-canvas');
     if (!canvas) return;
@@ -362,11 +362,9 @@ function drawSafeMandala() {
         const centerY = canvas.height / 2;
         const maxRadius = Math.min(centerX, centerY) * 0.85;
         
-        // Count active tone lines to scale the visualization brightness
         const voiceCount = Object.keys(activeVoices).length;
         
         if (!photicVisualsEnabled || voiceCount === 0) {
-            // Draw an idle, dormant geometric center ring when quiet
             ctx.strokeStyle = '#334155';
             ctx.lineWidth = 1 * window.devicePixelRatio;
             ctx.beginPath();
@@ -375,28 +373,20 @@ function drawSafeMandala() {
             return;
         }
 
-        // Sinusoidal speed modulator bound precisely to the chosen entrainment target (binauralDetuneHz)
         const pulsePeriod = Date.now() * 0.001 * (binauralDetuneHz * Math.PI);
-        const expansionFactor = 0.6 + Math.sin(pulsePeriod) * 0.25; // Continuous sinusoidal size modulation
+        const expansionFactor = 0.6 + Math.sin(pulsePeriod) * 0.25; 
         
-        // Advance rotation slowly to keep the visual field sliding smoothly
         angleOffset += 0.004;
-
         ctx.lineWidth = 1.5 * window.devicePixelRatio;
         
-        // Generate a 13-point mathematical golden rose node layout matrix
         for (let ring = 1; ring <= 4; ring++) {
             const ringScale = (ring / 4) * maxRadius * expansionFactor;
-            
-            // Color grading maps between deep bronze to amber depending on chosen preset spectrum
             const alphaValue = 0.15 + (Math.sin(pulsePeriod + ring) * 0.1);
             ctx.strokeStyle = `rgba(251, 191, 36, ${alphaValue})`;
             
             ctx.beginPath();
             for (let i = 0; i <= 13; i++) {
                 const angle = (i * (Math.PI * 2) / 13) + (angleOffset * (ring % 2 === 0 ? 1 : -1));
-                
-                // Polar to Cartesian coordinate map conversions
                 const r = ringScale * (1 + 0.15 * Math.sin(angle * PHI_CONSTANT));
                 const x = centerX + Math.cos(angle) * r;
                 const y = centerY + Math.sin(angle) * r;
@@ -408,7 +398,6 @@ function drawSafeMandala() {
             ctx.stroke();
         }
 
-        // Central core anchor glow ring
         ctx.fillStyle = `rgba(251, 191, 36, ${0.08 + Math.sin(pulsePeriod) * 0.04})`;
         ctx.beginPath();
         ctx.arc(centerX, centerY, maxRadius * 0.15 * expansionFactor, 0, Math.PI * 2);
