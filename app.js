@@ -44,36 +44,27 @@ function initAudio() {
     if (audioCtx) return; 
     const AudioContextClass = window.AudioContext || window.webkitAudioContext;
     audioCtx = new AudioContextClass();
-    
     masterGainNode = audioCtx.createGain();
     masterGainNode.gain.setValueAtTime(0.7, audioCtx.currentTime);
-
     analyserNode = audioCtx.createAnalyser();
     analyserNode.fftSize = 2048;
-
     spaceFilterNode = audioCtx.createBiquadFilter();
     spaceFilterNode.type = 'lowpass';
     updateFilterFrequency();
     spaceFilterNode.Q.setValueAtTime(4.0, audioCtx.currentTime);
-
     distortionNode = audioCtx.createWaveShaper();
     updateWaveShaperCurve(40);
-
     setupSpatialLFO();
-
     distortionNode.connect(spaceFilterNode);
     spaceFilterNode.connect(masterGainNode);
     masterGainNode.connect(analyserNode);
     analyserNode.connect(audioCtx.destination);
-    
     drawOscilloscope();
     drawSafeMandala();
 }
 
 function setupSpatialLFO() {
-    if (!audioCtx) return;
     spatialLfoNode = audioCtx.createOscillator();
-    spatialLfoNode.type = 'sine';
     spatialLfoNode.frequency.setValueAtTime(pannerLfoSpeed, audioCtx.currentTime);
     const lfoGain = audioCtx.createGain();
     lfoGain.gain.setValueAtTime(400, audioCtx.currentTime); 
@@ -83,14 +74,14 @@ function setupSpatialLFO() {
 }
 
 function updateFilterFrequency() {
-    if (!spaceFilterNode || !audioCtx) return;
+    if (!spaceFilterNode) return;
     const targetCutoff = 300 + (filterDepthPercent / 100) * 4700;
     spaceFilterNode.frequency.setValueAtTime(targetCutoff, audioCtx.currentTime);
 }
 
 function updateWaveShaperCurve(amount) {
     if (!distortionNode) return;
-    const k = typeof amount === 'number' ? amount : 40, n_samples = 44100, curve = new Float32Array(n_samples);
+    const k = amount, n_samples = 44100, curve = new Float32Array(n_samples);
     for (let i = 0; i < n_samples; ++i) {
         const x = (i * 2) / n_samples - 1;
         curve[i] = (3 + k) * x * 20 * (Math.PI / 180) / (Math.PI + k * Math.abs(x));
@@ -101,24 +92,6 @@ function updateWaveShaperCurve(amount) {
 function calculateGoldenFrequency(step, root) {
     if (currentTuningMode === 'fibonacci') return root * FIBONACCI_MULTIPLIERS[step];
     return root * Math.pow(2, ((step * PHI_INTERVAL_CENTS) % 1200) / 1200);
-}
-
-function updateSlidersUI() {
-    document.getElementById('root-freq').value = rootFrequency;
-    document.getElementById('root-val').innerText = rootFrequency;
-    document.getElementById('hypnotic-detune').value = binauralDetuneHz;
-    document.getElementById('detune-val').innerText = binauralDetuneHz.toFixed(2);
-    document.getElementById('space-swirl').value = Math.round((pannerLfoSpeed / 2.0) * 100);
-    document.getElementById('swirl-val').innerText = document.getElementById('space-swirl').value;
-    document.getElementById('filter-cutoff').value = filterDepthPercent;
-    document.getElementById('filter-val').innerText = filterDepthPercent;
-    document.querySelector(`input[name="tuning-mode"][value="${currentTuningMode}"]`).checked = true;
-    
-    const subtitle = document.getElementById('scale-subtitle');
-    subtitle.innerText = currentTuningMode === 'fibonacci' ? 
-        "Mathematical audio synthesis based on the 13:8 Fibonacci Integer Proportions" : 
-        "Mathematical audio synthesis based on the Golden Ratio interval (833.09 cents)";
-    subtitle.style.color = currentTuningMode === 'fibonacci' ? "#a78bfa" : "#94a3b8";
 }
 
 function updateKeyboardLabels() {
@@ -133,33 +106,39 @@ function initializeKeyboardListeners() {
     document.querySelectorAll('.phi-key').forEach(key => {
         const i = parseInt(key.dataset.index);
         key.addEventListener('pointerdown', (e) => {
-            e.preventDefault(); e.stopPropagation();
+            e.preventDefault();
             document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('selected'));
             currentKeyboardMode === 'toggle' ? toggleVoice(i) : voiceOn(i);
         });
-        key.addEventListener('pointerup', (e) => { e.preventDefault(); if (currentKeyboardMode === 'touch') voiceOff(i); });
-        key.addEventListener('pointerleave', (e) => { e.preventDefault(); if (currentKeyboardMode === 'touch') voiceOff(i); });
+        key.addEventListener('pointerup', () => { if(currentKeyboardMode === 'touch') voiceOff(i); });
+        key.addEventListener('pointerleave', () => { if(currentKeyboardMode === 'touch') voiceOff(i); });
     });
 }
 
 function loadNeuroPreset(presetKey) {
-    const preset = NEURO_PRESETS[presetKey]; if (!preset) return;
+    const preset = NEURO_PRESETS[presetKey];
+    if (!preset) return;
     if (!audioCtx) initAudio();
     clearAllTones(); 
-
-    currentTuningMode = preset.tuningMode; rootFrequency = preset.rootFreq; binauralDetuneHz = preset.detune;
-    filterDepthPercent = preset.filterDepth; pannerLfoSpeed = (preset.swirlSpeed / 100) * 2.0;
-
+    currentTuningMode = preset.tuningMode;
+    rootFrequency = preset.rootFreq;
+    binauralDetuneHz = preset.detune;
+    filterDepthPercent = preset.filterDepth;
+    pannerLfoSpeed = (preset.swirlSpeed / 100) * 2.0;
     updateFilterFrequency();
-    if (spatialLfoNode && audioCtx) spatialLfoNode.frequency.setValueAtTime(pannerLfoSpeed, audioCtx.currentTime);
+    if (spatialLfoNode) spatialLfoNode.frequency.setValueAtTime(pannerLfoSpeed, audioCtx.currentTime);
+    
+    document.getElementById('root-freq').value = rootFrequency;
+    document.getElementById('root-val').innerText = rootFrequency;
+    document.getElementById('hypnotic-detune').value = binauralDetuneHz;
+    document.getElementById('detune-val').innerText = binauralDetuneHz.toFixed(2);
+    document.querySelector(`input[name="tuning-mode"][value="${currentTuningMode}"]`).checked = true;
 
-    updateSlidersUI(); updateKeyboardLabels();
     currentKeyboardMode = 'toggle';
-    document.getElementById('keyboard-mode-title').innerText = "The Phi Keyboard Array (Toggle Mode)";
     document.querySelector('input[name="keyboard-mode"][value="toggle"]').checked = true;
-
     preset.chords.forEach(index => voiceOn(index));
     document.querySelectorAll('.preset-btn').forEach(btn => btn.dataset.preset === presetKey ? btn.classList.add('selected') : btn.classList.remove('selected'));
+    updateKeyboardLabels();
 }
 
 function toggleVoice(index) {
@@ -168,90 +147,88 @@ function toggleVoice(index) {
 }
 
 function voiceOn(index) {
-    if (!audioCtx) initAudio(); if (activeVoices[index]) return;
+    if (activeVoices[index]) return;
     const baseFreq = calculateGoldenFrequency(index, rootFrequency);
+    const oscL = audioCtx.createOscillator(), oscR = audioCtx.createOscillator();
+    const panL = audioCtx.createStereoPanner(), panR = audioCtx.createStereoPanner();
+    const voiceG = audioCtx.createGain();
     
-    const oscLeft = audioCtx.createOscillator(), oscRight = audioCtx.createOscillator();
-    const pannerLeft = audioCtx.createStereoPanner(), pannerRight = audioCtx.createStereoPanner();
-    const voiceGain = audioCtx.createGain();
-    
-    oscLeft.frequency.setValueAtTime(baseFreq, audioCtx.currentTime);
-    pannerLeft.pan.setValueAtTime(-1.0, audioCtx.currentTime); 
-    oscRight.frequency.setValueAtTime(baseFreq + binauralDetuneHz, audioCtx.currentTime);
-    pannerRight.pan.setValueAtTime(1.0, audioCtx.currentTime); 
+    oscL.frequency.value = baseFreq;
+    oscR.frequency.value = baseFreq + binauralDetuneHz;
+    panL.pan.value = -1; panR.pan.value = 1;
+    voiceG.gain.setValueAtTime(0, audioCtx.currentTime);
+    voiceG.gain.linearRampToValueAtTime(0.18, audioCtx.currentTime + 0.5);
 
-    voiceGain.gain.setValueAtTime(0, audioCtx.currentTime);
-    voiceGain.gain.linearRampToValueAtTime(0.18, audioCtx.currentTime + 0.5);
-
-    oscLeft.connect(pannerLeft); pannerLeft.connect(voiceGain);
-    oscRight.connect(pannerRight); pannerRight.connect(voiceGain);
-    voiceGain.connect(distortionNode);
-    
-    oscLeft.start(); oscRight.start();
-    activeVoices[index] = { oscLeft, oscRight, voiceGain };
+    oscL.connect(panL); panL.connect(voiceG);
+    oscR.connect(panR); panR.connect(voiceG);
+    voiceG.connect(distortionNode);
+    oscL.start(); oscR.start();
+    activeVoices[index] = { oscL, oscR, voiceG };
     updateKeyboardLabels();
 }
 
 function voiceOff(index) {
-    const voice = activeVoices[index]; if (!voice) return;
+    const v = activeVoices[index]; if (!v) return;
     const now = audioCtx.currentTime;
-    voice.voiceGain.gain.setValueAtTime(voice.voiceGain.gain.value, now);
-    voice.voiceGain.gain.exponentialRampToValueAtTime(0.0001, now + releaseTime);
-    voice.oscLeft.stop(now + releaseTime); voice.oscRight.stop(now + releaseTime);
+    v.voiceG.gain.setValueAtTime(v.voiceG.gain.value, now);
+    v.voiceG.gain.exponentialRampToValueAtTime(0.0001, now + releaseTime);
+    v.oscL.stop(now + releaseTime); v.oscR.stop(now + releaseTime);
     delete activeVoices[index];
     updateKeyboardLabels();
 }
 
 function clearAllTones() {
-    Object.keys(activeVoices).forEach(index => voiceOff(index));
+    Object.keys(activeVoices).forEach(i => voiceOff(i));
     document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('selected'));
 }
 
-// SAFE CHROMODYNAMIC ENVELOPING PHOTIC ENGINE
+// FIXED PHOTIC MANDALA ENGINE WITH REMAPPED CONSTANTS
 function drawSafeMandala() {
     const canvas = document.getElementById('mandala-canvas'); if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    let angleOffset = 0, baseHue = 40;
+    let angleOffset = 0, baseHue = 0;
 
     function render() {
         requestAnimationFrame(render);
         canvas.width = canvas.clientWidth * window.devicePixelRatio;
         canvas.height = canvas.clientHeight * window.devicePixelRatio;
         
-        // ALPHA-BLENDED MOTION TRAILS: Generates the deep liquid afterglow
-        ctx.fillStyle = 'rgba(17, 24, 39, 0.06)';
+        // Soft liquid back-clear trail sweep
+        ctx.fillStyle = 'rgba(13, 15, 18, 0.08)';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
         const voiceCount = Object.keys(activeVoices).length;
-        const centerX = canvas.width / 2, centerY = canvas.height / 2, maxRadius = Math.min(centerX, centerY) * 0.85;
-        
+        const centerX = canvas.width / 2, centerY = canvas.height / 2, maxR = Math.min(centerX, centerY) * 0.9;
+
         if (!photicVisualsEnabled || voiceCount === 0) {
-            ctx.strokeStyle = '#334155'; ctx.lineWidth = 1 * window.devicePixelRatio;
-            ctx.beginPath(); ctx.arc(centerX, centerY, maxRadius * 0.2, 0, Math.PI * 2); ctx.stroke();
+            // Draw a neat dark gold resting anchor circle when no sound is running
+            ctx.strokeStyle = 'rgba(251, 191, 36, 0.2)'; ctx.lineWidth = 1 * window.devicePixelRatio;
+            ctx.beginPath(); ctx.arc(centerX, centerY, maxR * 0.2, 0, Math.PI * 2); ctx.stroke();
             return;
         }
 
+        // FIXED: Explicitly referenced aligned parameter 'pulsePeriod' instead of unmapped 'pulse'
         const pulsePeriod = Date.now() * 0.001 * (binauralDetuneHz * Math.PI);
-        baseHue = (baseHue + 0.06) % 360; angleOffset += 0.003;
+        baseHue = (baseHue + 0.1) % 360;
+        angleOffset += 0.003;
 
-        // Trace 8 Interwoven Color-Shifted Concentric Rings
-        for (let ring = 1; ring <= 8; ring++) {
-            const direction = ring % 2 === 0 ? 1 : -1;
-            const expansionFactor = 0.6 + Math.sin(pulsePeriod + (ring * 0.4) * direction) * 0.2;
-            const ringScale = (ring / 8) * maxRadius * expansionFactor;
+        for (let ring = 1; ring <= 8; ring++) { 
+            const dir = ring % 2 === 0 ? 1 : -1;
+            const expand = 0.6 + Math.sin(pulsePeriod + ring * 0.5) * 0.2;
+            const rScale = (ring / 8) * maxR * expand;
+            const hue = (baseHue + (ring * 137.5)) % 360;
             
-            // Chromatic Dispersion via golden angles around the hue wheel
-            const currentHue = Math.round((baseHue + (ring * 137.5)) % 360);
-            const alphaValue = 0.12 + (Math.sin(pulsePeriod + ring) * 0.06);
-            
-            ctx.strokeStyle = `hsla(${currentHue}, 85%, 60%, ${alphaValue})`;
-            ctx.lineWidth = (2.2 - (ring * 0.2)) * window.devicePixelRatio;
-            
+            ctx.strokeStyle = `hsla(${hue}, 80%, 60%, ${0.15 + (Math.sin(pulsePeriod + ring) * 0.05)})`;
+            ctx.lineWidth = (2.5 - (ring * 0.2)) * window.devicePixelRatio;
             ctx.beginPath();
             for (let i = 0; i <= 13; i++) {
-                const angle = (i * (Math.PI * 2) / 13) + (angleOffset * direction * (1 + ring * 0.08));
-                const r = ringScale * (1 + 0.15 * Math.sin(angle * PHI_CONSTANT));
-                ctx.lineTo(centerX + Math.cos(angle) * r, centerY + Math.sin(angle) * r);
+                const a = (i * (Math.PI * 2) / 13) + (angleOffset * dir * (1 + ring * 0.1));
+                const r = rScale * (1 + 0.15 * Math.sin(a * PHI_CONSTANT));
+                const x = centerX + Math.cos(a) * r;
+                const y = centerY + Math.sin(a) * r;
+                
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
             }
             ctx.closePath(); ctx.stroke();
         }
@@ -260,43 +237,65 @@ function drawSafeMandala() {
 }
 
 function drawOscilloscope() {
-    const canvas = document.getElementById('oscilloscope'), canvasCtx = canvas.getContext('2d');
-    const bufferLength = analyserNode.frequencyBinCount, dataArray = new Uint8Array(bufferLength);
+    const canvas = document.getElementById('oscilloscope'), ctx = canvas.getContext('2d');
+    const buffer = analyserNode.frequencyBinCount, data = new Uint8Array(buffer);
     function render() {
-        requestAnimationFrame(render); analyserNode.getByteTimeDomainData(dataArray);
+        requestAnimationFrame(render);
+        analyserNode.getByteTimeDomainData(data);
         canvas.width = canvas.clientWidth * window.devicePixelRatio;
         canvas.height = canvas.clientHeight * window.devicePixelRatio;
-        canvasCtx.fillStyle = '#111827'; canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
-        canvasCtx.lineWidth = 2 * window.devicePixelRatio; canvasCtx.strokeStyle = '#fbbf24'; canvasCtx.beginPath();
-        const sliceWidth = canvas.width / bufferLength; let x = 0;
-        for (let i = 0; i < bufferLength; i++) {
-            const y = ((dataArray[i] / 128.0) * canvas.height) / 2;
-            i === 0 ? canvasCtx.moveTo(x, y) : canvasCtx.lineTo(x, y); x += sliceWidth;
+        ctx.fillStyle = '#111827'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.lineWidth = 2 * window.devicePixelRatio; ctx.strokeStyle = '#fbbf24';
+        ctx.beginPath();
+        const slice = canvas.width / buffer; let x = 0;
+        for (let i = 0; i < buffer; i++) {
+            const v = data[i] / 128.0, y = (v * canvas.height) / 2;
+            i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); x += slice;
         }
-        canvasCtx.lineTo(canvas.width, canvas.height / 2); canvasCtx.stroke();
+        ctx.lineTo(canvas.width, canvas.height / 2); ctx.stroke();
     }
     render();
 }
 
-// System Binders
+// DOM Interface Controllers
 document.getElementById('activation-overlay').addEventListener('pointerdown', (e) => {
     e.preventDefault(); initAudio(); initializeKeyboardListeners();
-    document.getElementById('activation-overlay').style.opacity = '0';
-    setTimeout(() => document.getElementById('activation-overlay').style.drop = 'none', 500);
     document.getElementById('activation-overlay').style.display = 'none';
 });
 document.getElementById('clear-btn').addEventListener('pointerdown', clearAllTones);
 document.getElementById('photic-toggle').addEventListener('change', (e) => photicVisualsEnabled = e.target.checked);
-document.getElementById('root-freq').addEventListener('input', (e) => { rootFrequency = parseFloat(e.target.value); document.getElementById('root-val').innerText = rootFrequency; updateKeyboardLabels(); });
-document.getElementById('hypnotic-detune').addEventListener('input', (e) => {
-    binauralDetuneHz = parseFloat(e.target.value); document.getElementById('detune-val').innerText = binauralDetuneHz.toFixed(2);
-    Object.keys(activeVoices).forEach(i => activeVoices[i].oscRight.frequency.setValueAtTime(calculateGoldenFrequency(i, rootFrequency) + binauralDetuneHz, audioCtx.currentTime));
-});
-document.getElementById('space-swirl').addEventListener('input', (e) => { pannerLfoSpeed = (parseInt(e.target.value) / 100) * 2.0; document.getElementById('swirl-val').innerText = e.target.value; if (spatialLfoNode) spatialLfoNode.frequency.setValueAtTime(pannerLfoSpeed, audioCtx.currentTime); });
-document.getElementById('filter-cutoff').addEventListener('input', (e) => { filterDepthPercent = parseInt(e.target.value); document.getElementById('filter-val').innerText = filterDepthPercent; updateFilterFrequency(); });
-document.getElementById('warmth').addEventListener('input', (e) => { const val = parseInt(e.target.value); document.getElementById('warmth-val').innerText = val; updateWaveShaperCurve(val); });
-document.getElementById('release').addEventListener('input', (e) => { releaseTime = parseFloat(e.target.value); document.getElementById('release-val').innerText = releaseTime.toFixed(1); });
-document.getElementById('master-volume').addEventListener('input', (e) => { const val = parseInt(e.target.value) / 100; document.getElementById('volume-val').innerText = e.target.value; if (masterGainNode) masterGainNode.gain.setValueAtTime(val, audioCtx.currentTime); });
 document.querySelectorAll('.preset-btn').forEach(btn => btn.addEventListener('pointerdown', () => loadNeuroPreset(btn.dataset.preset)));
+document.getElementById('root-freq').addEventListener('input', (e) => {
+    rootFrequency = parseFloat(e.target.value);
+    document.getElementById('root-val').innerText = rootFrequency;
+    updateKeyboardLabels();
+});
+document.getElementById('hypnotic-detune').addEventListener('input', (e) => {
+    binauralDetuneHz = parseFloat(e.target.value);
+    document.getElementById('detune-val').innerText = binauralDetuneHz.toFixed(2);
+});
+document.getElementById('space-swirl').addEventListener('input', (e) => {
+    pannerLfoSpeed = (parseInt(e.target.value) / 100) * 2.0;
+    if (spatialLfoNode) spatialLfoNode.frequency.setValueAtTime(pannerLfoSpeed, audioCtx.currentTime);
+    document.getElementById('swirl-val').innerText = e.target.value;
+});
+document.getElementById('filter-cutoff').addEventListener('input', (e) => {
+    filterDepthPercent = parseInt(e.target.value);
+    document.getElementById('filter-val').innerText = filterDepthPercent;
+    updateFilterFrequency();
+});
+document.getElementById('warmth').addEventListener('input', (e) => {
+    updateWaveShaperCurve(parseInt(e.target.value));
+    document.getElementById('warmth-val').innerText = e.target.value;
+});
+document.getElementById('release').addEventListener('input', (e) => {
+    releaseTime = parseFloat(e.target.value);
+    document.getElementById('release-val').innerText = releaseTime.toFixed(1);
+});
+document.getElementById('master-volume').addEventListener('input', (e) => {
+    const v = parseInt(e.target.value) / 100;
+    if (masterGainNode) masterGainNode.gain.setValueAtTime(v, audioCtx.currentTime);
+    document.getElementById('volume-val').innerText = e.target.value;
+});
 
 updateKeyboardLabels();
