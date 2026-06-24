@@ -92,7 +92,7 @@ header p {
     transform: scale(0.95);
 }
 
-/* Keyboard Section Headers */
+/* Keyboard Headers */
 .keyboard-header {
     display: flex;
     justify-content: space-between;
@@ -167,7 +167,7 @@ header p {
     color: #78350f;
 }
 
-/* Controls Grid Layout Matrix */
+/* Controls Grid Layout */
 .controls-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -210,6 +210,13 @@ header p {
     color: #cbd5e1;
 }
 
+input[type="checkbox"] {
+    accent-color: #fbbf24;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
 .radio-group {
     display: flex;
     flex-direction: column;
@@ -250,7 +257,7 @@ input[type="range"]::-webkit-slider-thumb {
     cursor: pointer;
 }
 
-/* Preset Interface Layout Customizations */
+/* Preset Grid Setup */
 .preset-card {
     grid-column: span 1;
 }
@@ -304,20 +311,35 @@ input[type="range"]::-webkit-slider-thumb {
     color: #ffffff;
 }
 
-.preset-btn.selected .btn-meta {
-    color: #fde68a;
+/* Stable Visualization Containers Track */
+.visualizer-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 }
 
-/* Visualizer Section Canvas */
+@media (min-width: 768px) {
+    .visualizer-container {
+        flex-direction: row; /* Horizontal splitting at bottom on landscape tablets */
+    }
+}
+
+.visualizer-block {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
 .visualizer-section h3 {
     font-size: 1.1rem;
     color: #94a3b8;
     margin-bottom: 10px;
 }
 
-#oscilloscope {
+#oscilloscope, #mandala-canvas {
     width: 100%;
-    height: 150px;
+    height: 180px;
     background-color: #111827;
     border-radius: 8px;
     border: 1px solid #334155;
