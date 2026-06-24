@@ -48,11 +48,11 @@
             
             <div class="control-card preset-card">
                 <h3>Neurological Entrainment Presets</h3>
-                <p class="card-desc">Instantly configure mathematical states for targeted neurological stimulation (Headphones required).</p>
+                <p class="card-desc">Instantly configure mathematical states for targeted brain wave entrainment (Headphones required).</p>
                 <div class="preset-actions-grid">
                     <button class="preset-btn" data-preset="alpha">
                         <span class="btn-title">Alpha Flow</span>
-                        <span class="btn-meta">10.0 Hz Calm Focus</span>
+                        <span class="btn-meta">10.0 Hz Focus Bridge</span>
                     </button>
                     <button class="preset-btn" data-preset="theta">
                         <span class="btn-title">Theta Trance</span>
@@ -130,6 +130,15 @@
                     </div>
                 </div>
                 <div class="control-group">
+                    <label>Visual Photic Field</label>
+                    <div class="radio-group">
+                        <label class="radio-label">
+                            <input type="checkbox" id="photic-toggle" checked>
+                            Enable Safe Chromic Field (Enveloping Spectrum)
+                        </label>
+                    </div>
+                </div>
+                <div class="control-group">
                     <label for="warmth">Saturation (Tanh Distortion): <span id="warmth-val">40</span>%</label>
                     <input type="range" id="warmth" min="0" max="100" step="1" value="40">
                 </div>
@@ -145,8 +154,16 @@
         </section>
 
         <section class="visualizer-section">
-            <h3>Oscilloscope Waveform Monitor</h3>
-            <canvas id="oscilloscope"></canvas>
+            <div class="visualizer-container">
+                <div class="visualizer-block">
+                    <h3>Chromodynamic Photic Mandala</h3>
+                    <canvas id="mandala-canvas"></canvas>
+                </div>
+                <div class="visualizer-block">
+                    <h3>Oscilloscope Waveform Monitor</h3>
+                    <canvas id="oscilloscope"></canvas>
+                </div>
+            </div>
         </section>
     </main>
 
