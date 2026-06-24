@@ -29,13 +29,13 @@ const FIBONACCI_MULTIPLIERS = [
     1.8592, 1.5106, 1.2274, 1.9945, 1.6205, 1.3167
 ];
 
-// Neurological Engine Configuration Blueprint Map
+// Expanded Neurological Configuration Engine Array Matrix
 const NEURO_PRESETS = {
     alpha: {
         name: "Alpha Flow",
         tuningMode: "fibonacci",
         rootFreq: 440,
-        detune: 10.00,
+        detune: 10.00, // Alpha core frequency focus
         filterDepth: 75,
         swirlSpeed: 45,
         chords: [0, 4, 7, 11]
@@ -44,7 +44,7 @@ const NEURO_PRESETS = {
         name: "Theta Trance",
         tuningMode: "spiral",
         rootFreq: 220, 
-        detune: 6.18,  
+        detune: 6.18,  // Phi * 10 meditation marker
         filterDepth: 45,
         swirlSpeed: 25,
         chords: [0, 3, 6, 9]  
@@ -53,19 +53,37 @@ const NEURO_PRESETS = {
         name: "Deep Delta",
         tuningMode: "spiral",
         rootFreq: 110, 
-        detune: 1.62,  
+        detune: 1.62,  // Fundamental Golden Ratio difference
         filterDepth: 25, 
         swirlSpeed: 10,  
         chords: [0, 5, 12]
     },
-    astral: {
-        name: "Astral Flight",
+    ptsd: {
+        name: "Trauma Down-Reg",
         tuningMode: "spiral",
-        rootFreq: 220,
-        detune: 4.00,  
-        filterDepth: 60,
-        swirlSpeed: 65,  
-        chords: [0, 1, 5]  
+        rootFreq: 110, // Sub bass fundamental down-regulates nervous system arousal
+        detune: 4.50,  // Deep, clinical trauma-processing Theta boundary frequency
+        filterDepth: 35, // Low cutoff masks sterile digital buzz
+        swirlSpeed: 15,  // Slow grounding drift
+        chords: [0, 3, 7]  // Strong anchor triad
+    },
+    beta: {
+        name: "Beta Cognition",
+        tuningMode: "fibonacci",
+        rootFreq: 440, // Higher fundamental sharpens processing acuity
+        detune: 20.00, // Target mid-Beta band for crisp focus and ADHD support
+        filterDepth: 85, // Open filter brightens the acoustic profile
+        swirlSpeed: 50,  
+        chords: [0, 2, 5, 9] // Expanded cognitive structure chord
+    },
+    gamma: {
+        name: "Gamma Epiphany",
+        tuningMode: "spiral",
+        rootFreq: 220, // Grounded octave allows clear harmonic visualization
+        detune: 40.00, // High-performance 40Hz peak cognitive binding target
+        filterDepth: 95, // Fully opened filter allows total transient parsing
+        swirlSpeed: 70,  // Fast spatial panning maximizes hemispheric travel speed
+        chords: [0, 4, 12] // Wide octave-and-a-third open architecture stack
     }
 };
 
