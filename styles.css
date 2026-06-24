@@ -16,7 +16,7 @@ body {
 }
 
 #app-container {
-    max-width: 1300px; /* Expanded slightly to give side-by-side structures room to look clean */
+    max-width: 1300px;
     margin: 0 auto;
     display: flex;
     flex-direction: column;
@@ -39,7 +39,7 @@ header p {
     font-size: 0.95rem;
 }
 
-/* Premium Activation Overlay */
+/* Premium Activation Overlay Setup */
 #activation-overlay {
     position: fixed;
     top: 0;
@@ -66,6 +66,7 @@ header p {
 .overlay-card h1 {
     color: #fbbf24;
     margin-bottom: 15px;
+    font-size: 1.8rem;
 }
 
 .overlay-card p {
@@ -78,14 +79,15 @@ header p {
     background-color: #fbbf24;
     color: #0d0f12;
     border: none;
-    padding: 12px 30px;
-    font-size: 1rem;
+    padding: 14px 35px;
+    font-size: 1.1rem;
     font-weight: bold;
     border-radius: 6px;
     cursor: pointer;
+    box-shadow: 0 4px 12px rgba(251, 191, 36, 0.2);
 }
 
-/* Keyboard Heading Bars */
+/* Keyboard System Heading Controls Bar */
 .keyboard-header {
     display: flex;
     justify-content: space-between;
@@ -109,11 +111,11 @@ header p {
     cursor: pointer;
 }
 
-/* Keyboard Construction Grid */
+/* Keyboard Layout Sizing */
 #keyboard {
     display: flex;
     width: 100%;
-    height: 180px; /* Kept clean and sleek to elevate visualizer real estate below it */
+    height: 180px;
     background-color: #1e293b;
     border-radius: 8px;
     padding: 10px;
@@ -126,6 +128,7 @@ header p {
     background: linear-gradient(180deg, #2d3748 0%, #1a202c 100%);
     border: 1px solid #4a5568;
     border-radius: 6px;
+    cursor: pointer;
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
@@ -152,17 +155,17 @@ header p {
     color: #78350f;
 }
 
-/* DUAL COLUMN ARCHITECTURE GRID SYSTEM */
+/* DUAL COLUMN SYSTEM SIDE-BY-SIDE GRID WORKSPACE */
 .dashboard-workspace {
     display: grid;
-    grid-template-columns: 1fr; /* Stacked layout by default for smartphone screens */
+    grid-template-columns: 1fr;
     gap: 25px;
     align-items: start;
 }
 
 @media (min-width: 900px) {
     .dashboard-workspace {
-        grid-template-columns: 4.5fr 5.5fr; /* 45% left side controls, 55% expansive right display field */
+        grid-template-columns: 4.5fr 5.5fr; /* Controls left (45%), Prominent visualizer deck right (55%) */
     }
 }
 
@@ -253,10 +256,10 @@ input[type="range"]::-webkit-slider-thumb {
     cursor: pointer;
 }
 
-/* Preset Action Matrix Buttons Grid */
+/* Neuro Presets Grid Configuration Selector Map */
 .preset-actions-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr); /* 2x3 matrix for optimal tablet grid balance */
+    grid-template-columns: repeat(2, 1fr);
     gap: 12px;
 }
 
@@ -294,13 +297,13 @@ input[type="range"]::-webkit-slider-thumb {
     color: #ffffff;
 }
 
-/* RIGHT COLUMN DISP LAY DECK STICKY POSITIONING */
+/* RIGHT COLUMN DISP LAY DECK STICKY PANEL POSITIONING */
 .visualizer-deck {
     display: flex;
     flex-direction: column;
     gap: 20px;
     position: sticky;
-    top: 20px; /* Pins visuals perfectly to eye level while you scroll deep mix menus on the left */
+    top: 20px;
 }
 
 .visualizer-card {
@@ -318,15 +321,15 @@ input[type="range"]::-webkit-slider-thumb {
     color: #94a3b8;
 }
 
-/* Massive Immersive Chromodynamic Landscape Field */
+/* Immersive Photic Mandala Field Bounds */
 .large-canvas-block canvas {
     width: 100%;
-    height: 480px; /* Significantly expanded visual horizon envelope */
+    height: 460px;
     background-color: #111827;
     display: block;
 }
 
-/* Low Profile Precision Frequency Tracker Canvas */
+/* Razor Sharp Audio Oscilloscope Monitor Canvas Bounds */
 .small-canvas-block canvas {
     width: 100%;
     height: 120px;
