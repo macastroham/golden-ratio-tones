@@ -92,7 +92,7 @@ header p {
     transform: scale(0.95);
 }
 
-/* Keyboard Headers */
+/* Keyboard Section Headers */
 .keyboard-header {
     display: flex;
     justify-content: space-between;
@@ -167,7 +167,7 @@ header p {
     color: #78350f;
 }
 
-/* Controls Grid Layout */
+/* Controls Grid Layout Matrix */
 .controls-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -250,7 +250,7 @@ input[type="range"]::-webkit-slider-thumb {
     cursor: pointer;
 }
 
-/* Preset Actions Grid Layout */
+/* Preset Interface Layout Customizations */
 .preset-card {
     grid-column: span 1;
 }
@@ -308,7 +308,7 @@ input[type="range"]::-webkit-slider-thumb {
     color: #fde68a;
 }
 
-/* Visualizer Canvas Card */
+/* Visualizer Section Canvas */
 .visualizer-section h3 {
     font-size: 1.1rem;
     color: #94a3b8;
